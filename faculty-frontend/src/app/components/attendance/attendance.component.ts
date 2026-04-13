@@ -1,9 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
+import { NotificationService } from '../../services/notification.service';
+import { Subscription } from 'rxjs';
+import { Student, Attendance } from '../../models/api.models';
 
 @Component({
   selector: 'app-attendance',
@@ -12,11 +16,11 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './attendance.html',
   styleUrl: './attendance.css'
 })
-export class AttendanceComponent implements OnInit {
+export class AttendanceComponent implements OnInit, OnDestroy {
   attendance = { student_id: '', date: new Date().toISOString().split('T')[0], status: 'Present' };
-  attendanceHistory: any[] = [];
-  filteredHistory: any[] = [];
-  students: any[] = [];
+  attendanceHistory: Attendance[] = [];
+  filteredHistory: Attendance[] = [];
+  students: Student[] = [];
   searchStudentId: string = '';
   isLoading = false;
   isEditing = false;
@@ -37,6 +41,8 @@ export class AttendanceComponent implements OnInit {
   filterStartDate = '';
   filterEndDate = '';
 
+  private sub?: Subscription;
+
   get selectedStudentName(): string {
     const student = this.students.find(s => s.id.toString() === this.searchStudentId);
     return student ? student.name : '';
@@ -44,21 +50,20 @@ export class AttendanceComponent implements OnInit {
 
   constructor(
     private apiService: ApiService, 
-    private cdr: ChangeDetectorRef,
-    private toast: ToastService
+    private dataService: DataService,
+    private toast: ToastService,
+    private notifService: NotificationService
   ) {}
 
   ngOnInit() {
-    this.loadStudents();
+    this.sub = this.dataService.students$.subscribe(data => {
+      this.students = data;
+    });
+    this.dataService.refreshStudents();
   }
 
-  loadStudents() {
-    this.apiService.getStudents().subscribe({
-      next: (data) => {
-        this.students = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-        this.cdr.detectChanges();
-      }
-    });
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
   }
 
   submitAttendance() {
@@ -68,13 +73,19 @@ export class AttendanceComponent implements OnInit {
     }
 
     this.isLoading = true;
+    const attendanceData = {
+      student_id: parseInt(this.attendance.student_id),
+      date: this.attendance.date,
+      status: this.attendance.status
+    };
 
     if (this.isEditing && this.editingId) {
-      this.apiService.updateAttendance(this.editingId, this.attendance).subscribe({
+      this.apiService.updateAttendance(this.editingId, attendanceData).subscribe({
         next: () => {
           this.toast.success('Attendance updated successfully');
           this.loadAttendanceHistory();
           this.cancelEdit();
+          this.isLoading = false;
         },
         error: (err) => {
           this.toast.error(err.error?.message || 'Failed to update attendance');
@@ -82,14 +93,24 @@ export class AttendanceComponent implements OnInit {
         }
       });
     } else {
-      this.apiService.recordAttendance(this.attendance).subscribe({
+      this.apiService.recordAttendance(attendanceData).subscribe({
         next: () => {
           this.toast.success('Attendance recorded successfully');
-          this.isLoading = false;
+          
+          // Trigger Notification
+          const student = this.students.find(s => s.id.toString() === this.attendance.student_id);
+          this.notifService.addNotification({
+            icon: '📅',
+            title: 'Attendance Recorded',
+            message: `<strong>${this.attendance.status}</strong> recorded for <strong>${student ? student.name : 'Unknown Student'}</strong> on ${this.attendance.date}`,
+            type: 'attendance'
+          });
+
           if (this.searchStudentId === this.attendance.student_id) {
             this.loadAttendanceHistory();
           }
           this.resetForm();
+          this.isLoading = false;
         },
         error: (err) => {
           this.toast.error(err.error?.message || 'Failed to record attendance');
@@ -118,11 +139,10 @@ export class AttendanceComponent implements OnInit {
     this.isLoading = true;
     this.apiService.getStudentAttendance(+this.searchStudentId).subscribe({
       next: (res) => {
-        this.attendanceHistory = res.data || [];
+        this.attendanceHistory = Array.isArray(res) ? res : res.data;
         this.applyFilters();
         this.calculateSummary();
         this.isLoading = false;
-        this.cdr.detectChanges();
       },
       error: (err) => {
         this.toast.error('Failed to load attendance history');
@@ -160,7 +180,7 @@ export class AttendanceComponent implements OnInit {
     this.summary = { total, present, late, absent, excused, rate };
   }
 
-  editRecord(record: any) {
+  editRecord(record: Attendance) {
     this.isEditing = true;
     this.editingId = record.id;
     this.attendance = {
@@ -184,6 +204,7 @@ export class AttendanceComponent implements OnInit {
         next: () => {
           this.toast.success('Attendance record deleted');
           this.loadAttendanceHistory();
+          this.isLoading = false;
         },
         error: () => {
           this.toast.error('Failed to delete attendance record');
@@ -219,11 +240,12 @@ export class AttendanceComponent implements OnInit {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    const filename = `attendance_${student?.name.replace(/\s+/g, '_') || this.searchStudentId}_${new Date().toISOString().split('T')[0]}.csv`;
+    const filename = `attendance_${student?.name?.replace(/\s+/g, '_') || this.searchStudentId}_${new Date().toISOString().split('T')[0]}.csv`;
     link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     this.toast.info('Attendance exported as CSV');
   }
+}
 }

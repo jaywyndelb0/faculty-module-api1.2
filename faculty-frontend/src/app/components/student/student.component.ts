@@ -1,9 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
+import { Subscription, combineLatest } from 'rxjs';
+import { Student, Section } from '../../models/api.models';
 
 @Component({
   selector: 'app-student',
@@ -12,10 +15,10 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './student.html',
   styleUrl: './student.css'
 })
-export class StudentComponent implements OnInit {
-  students: any[] = [];
-  filteredStudents: any[] = [];
-  sections: any[] = [];
+export class StudentComponent implements OnInit, OnDestroy {
+  students: Student[] = [];
+  filteredStudents: Student[] = [];
+  sections: Section[] = [];
   newStudent = { name: '', section_id: '' };
   isAdding = false;
   isEditing = false;
@@ -30,39 +33,29 @@ export class StudentComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
 
+  private sub?: Subscription;
+
   constructor(
     private apiService: ApiService, 
-    private cdr: ChangeDetectorRef,
+    private dataService: DataService,
     private toast: ToastService
   ) {}
 
   ngOnInit() {
-    this.loadStudents();
-    this.loadSections();
+    this.sub = combineLatest([
+      this.dataService.students$,
+      this.dataService.sections$
+    ]).subscribe(([students, sections]) => {
+      this.students = students;
+      this.sections = sections;
+      this.applyFilters();
+    });
+    this.dataService.refreshStudents();
+    this.dataService.refreshSections();
   }
 
-  loadStudents() {
-    this.isLoading = true;
-    this.apiService.getStudents().subscribe({
-      next: (data) => {
-        this.students = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-        this.applyFilters();
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.toast.error('Failed to load students');
-        this.isLoading = false;
-      }
-    });
-  }
-
-  loadSections() {
-    this.apiService.getSections().subscribe({
-      next: (data) => {
-        this.sections = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-      }
-    });
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
   }
 
   applyFilters() {
@@ -96,12 +89,15 @@ export class StudentComponent implements OnInit {
     }
 
     this.isLoading = true;
+    const studentData = { name: this.newStudent.name, section_id: parseInt(this.newStudent.section_id) };
+    
     if (this.isEditing && this.editingId) {
-      this.apiService.updateStudent(this.editingId, this.newStudent).subscribe({
+      this.apiService.updateStudent(this.editingId, studentData).subscribe({
         next: () => {
           this.toast.success('Student updated');
-          this.loadStudents();
+          this.dataService.refreshStudents();
           this.cancelEdit();
+          this.isLoading = false;
         },
         error: () => {
           this.toast.error('Failed to update student');
@@ -109,12 +105,13 @@ export class StudentComponent implements OnInit {
         }
       });
     } else {
-      this.apiService.createStudent(this.newStudent).subscribe({
+      this.apiService.createStudent(studentData).subscribe({
         next: () => {
           this.toast.success('Student added');
-          this.loadStudents();
+          this.dataService.refreshStudents();
           this.newStudent = { name: '', section_id: '' };
           this.isAdding = false;
+          this.isLoading = false;
         },
         error: () => {
           this.toast.error('Failed to add student');
@@ -124,7 +121,7 @@ export class StudentComponent implements OnInit {
     }
   }
 
-  editStudent(student: any) {
+  editStudent(student: Student) {
     this.isEditing = true;
     this.isAdding = true;
     this.editingId = student.id;
@@ -145,7 +142,8 @@ export class StudentComponent implements OnInit {
       this.apiService.deleteStudent(id).subscribe({
         next: () => {
           this.toast.success('Student deleted');
-          this.loadStudents();
+          this.dataService.refreshStudents();
+          this.isLoading = false;
         },
         error: () => {
           this.toast.error('Failed to delete student');

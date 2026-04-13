@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { ApiService } from '../../services/api.service';
+import { DataService } from '../../services/data.service';
+import { Subscription, combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -10,7 +11,7 @@ import { ApiService } from '../../services/api.service';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   modules = [
     { name: 'Faculty Management', route: '/faculty', icon: '👨‍🏫', description: 'Manage staff and view schedules' },
     { name: 'Student Management', route: '/student', icon: '🎓', description: 'Manage student records' },
@@ -25,48 +26,35 @@ export class DashboardComponent implements OnInit {
     avgPerformance: '0.00'
   };
 
+  private sub?: Subscription;
+
   constructor(
     private router: Router, 
-    private apiService: ApiService,
-    private cdr: ChangeDetectorRef
+    private dataService: DataService
   ) {}
 
   ngOnInit() {
-    if (!localStorage.getItem('token')) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.loadStats();
+    this.dataService.loadAll();
+    this.sub = combineLatest([
+      this.dataService.faculty$,
+      this.dataService.students$,
+      this.dataService.grades$
+    ]).subscribe(([faculty, students, grades]) => {
+      this.stats.facultyCount = faculty.length;
+      this.stats.studentCount = students.length;
+      this.stats.gradesCount = grades.length;
+      
+      if (grades.length > 0) {
+        const sum = grades.reduce((acc, curr) => acc + parseFloat(curr.grade), 0);
+        this.stats.avgPerformance = (sum / grades.length).toFixed(2);
+      } else {
+        this.stats.avgPerformance = '0.00';
+      }
+    });
   }
 
-  loadStats() {
-    this.apiService.getFaculty().subscribe({
-      next: (data) => {
-        const list = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-        this.stats.facultyCount = list.length;
-        this.cdr.detectChanges();
-      }
-    });
-
-    this.apiService.getStudents().subscribe({
-      next: (data) => {
-        const list = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-        this.stats.studentCount = list.length;
-        this.cdr.detectChanges();
-      }
-    });
-
-    this.apiService.getGrades().subscribe({
-      next: (data) => {
-        const list = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-        this.stats.gradesCount = list.length;
-        if (list.length > 0) {
-          const sum = list.reduce((acc: number, curr: any) => acc + parseFloat(curr.grade), 0);
-          this.stats.avgPerformance = (sum / list.length).toFixed(2);
-        }
-        this.cdr.detectChanges();
-      }
-    });
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
   }
 
   logout() {

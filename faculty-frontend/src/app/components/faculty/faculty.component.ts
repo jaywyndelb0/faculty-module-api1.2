@@ -1,9 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
+import { Subscription } from 'rxjs';
+import { Faculty } from '../../models/api.models';
 
 @Component({
   selector: 'app-faculty',
@@ -12,9 +15,9 @@ import { ToastService } from '../../services/toast.service';
   templateUrl: './faculty.html',
   styleUrl: './faculty.css'
 })
-export class FacultyComponent implements OnInit {
-  facultyList: any[] = [];
-  filteredFaculty: any[] = [];
+export class FacultyComponent implements OnInit, OnDestroy {
+  facultyList: Faculty[] = [];
+  filteredFaculty: Faculty[] = [];
   newFaculty = { name: '', email: '', department: 'Computer Science' };
   isAdding = false;
   isEditing = false;
@@ -29,30 +32,24 @@ export class FacultyComponent implements OnInit {
   pageSize = 10;
   currentPage = 1;
 
+  private sub?: Subscription;
+
   constructor(
     private apiService: ApiService, 
-    private cdr: ChangeDetectorRef,
+    private dataService: DataService,
     private toast: ToastService
   ) {}
 
   ngOnInit() {
-    this.loadFaculty();
+    this.sub = this.dataService.faculty$.subscribe(data => {
+      this.facultyList = data;
+      this.applyFilters();
+    });
+    this.dataService.refreshFaculty();
   }
 
-  loadFaculty() {
-    this.isLoading = true;
-    this.apiService.getFaculty().subscribe({
-      next: (data) => {
-        this.facultyList = Array.isArray(data) ? data : (data && (data as any).data ? (data as any).data : []);
-        this.applyFilters();
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.toast.error('Failed to load faculty list');
-        this.isLoading = false;
-      }
-    });
+  ngOnDestroy() {
+    this.sub?.unsubscribe();
   }
 
   applyFilters() {
@@ -92,8 +89,9 @@ export class FacultyComponent implements OnInit {
       this.apiService.updateFaculty(this.editingId, this.newFaculty).subscribe({
         next: () => {
           this.toast.success('Faculty updated successfully');
-          this.loadFaculty();
+          this.dataService.refreshFaculty();
           this.cancelEdit();
+          this.isLoading = false;
         },
         error: (err) => {
           this.toast.error('Failed to update faculty');
@@ -104,9 +102,10 @@ export class FacultyComponent implements OnInit {
       this.apiService.createFaculty(this.newFaculty).subscribe({
         next: () => {
           this.toast.success('Faculty added successfully');
-          this.loadFaculty();
+          this.dataService.refreshFaculty();
           this.resetForm();
           this.isAdding = false;
+          this.isLoading = false;
         },
         error: (err) => {
           this.toast.error('Failed to add faculty');
@@ -116,7 +115,7 @@ export class FacultyComponent implements OnInit {
     }
   }
 
-  editFaculty(faculty: any) {
+  editFaculty(faculty: Faculty) {
     this.isEditing = true;
     this.isAdding = true;
     this.editingId = faculty.id;
@@ -145,7 +144,8 @@ export class FacultyComponent implements OnInit {
       this.apiService.deleteFaculty(id).subscribe({
         next: () => {
           this.toast.success('Faculty member deleted');
-          this.loadFaculty();
+          this.dataService.refreshFaculty();
+          this.isLoading = false;
         },
         error: (err) => {
           this.toast.error('Failed to delete faculty member');

@@ -19,15 +19,20 @@ export class RegisterComponent {
     password_confirmation: ''
   };
   error = '';
+  isLoading = false;
 
   constructor(private apiService: ApiService, private router: Router) {}
 
   onSubmit() {
+    this.isLoading = true;
+    this.error = '';
     this.apiService.register(this.user).subscribe({
       next: (response) => {
+        this.isLoading = false;
         this.router.navigate(['/login']);
       },
       error: (err) => {
+        this.isLoading = false;
         this.error = 'Registration failed. Please check your details.';
       }
     });

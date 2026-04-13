@@ -289,6 +289,16 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   100% { transform: rotate(360deg); }
 }
 
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
 /* Scrollbar Polish */
 ::-webkit-scrollbar {
   width: 8px;
