@@ -1,0 +1,169 @@
+<div class="page-header">
+  <div class="header-content">
+    <h1>Student Management</h1>
+    <p>Manage student records and class assignments.</p>
+  </div>
+  <div class="header-actions">
+    <button (click)="isAdding = !isAdding; isEditing = false; cancelEdit()" class="btn btn-primary">
+      <span class="icon">{{ isAdding ? '✕' : '＋' }}</span>
+      {{ isAdding ? 'Cancel' : 'Add Student' }}
+    </button>
+  </div>
+</div>
+
+<div *ngIf="isAdding" class="form-card animate-fade-in">
+  <div class="card-header">
+    <h3>{{ isEditing ? 'Edit Student' : 'Add New Student' }}</h3>
+  </div>
+  <form (ngSubmit)="addStudent()" #f="ngForm" class="modern-form">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Full Name</label>
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <input type="text" name="name" [(ngModel)]="newStudent.name" placeholder="e.g. John Doe" required pattern="^[a-zA-Z\.\s]*$" #name="ngModel">
+        </div>
+        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error-text">
+          <span *ngIf="name.errors?.['required']">Name is required</span>
+          <span *ngIf="name.errors?.['pattern']">Invalid characters in name</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Section</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🏢</span>
+          <select name="section_id" [(ngModel)]="newStudent.section_id" required #section="ngModel">
+            <option value="" disabled>Select Section</option>
+            <option *ngFor="let s of sections" [value]="s.id">{{ s.section_name }}</option>
+          </select>
+        </div>
+        <div *ngIf="section.invalid && (section.dirty || section.touched)" class="error-text">Section is required</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success" [disabled]="!f.valid || isLoading">
+        <span *ngIf="isLoading" class="icon-spin">⏳</span>
+        {{ isLoading ? 'Processing...' : (isEditing ? 'Update Student' : 'Save Student') }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="filters-card animate-fade-in">
+  <div class="card-header">
+    <h3>Filters & Search</h3>
+    <button (click)="resetFilters()" class="btn btn-sm btn-secondary">Reset Filters</button>
+  </div>
+  <div class="card-body">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Search Student Name</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔍</span>
+          <input type="text" [(ngModel)]="filterText" (input)="applyFilters()" placeholder="Type to search...">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>Section</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🏢</span>
+          <select [(ngModel)]="filterSection" (change)="applyFilters()">
+            <option value="">All Sections</option>
+            <option *ngFor="let s of sections" [value]="s.id">{{ s.section_name }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="table-card animate-fade-in">
+  <div class="card-header">
+    <div class="header-left">
+      <h3>Student Directory</h3>
+      <span class="badge">{{ filteredStudents.length }} Students</span>
+    </div>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="modern-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Section</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of paginatedStudents">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar">{{ s.name.substring(0, 2).toUpperCase() }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ s.name }}</span>
+                <span class="user-email">ST-{{ s.id }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="dept-badge">{{ s.section_name || 'Unassigned' }}</span>
+          </td>
+          <td>
+            <span class="status-pill active">Enrolled</span>
+          </td>
+          <td class="text-right">
+            <div class="action-group">
+              <button (click)="editStudent(s)" class="btn-icon edit" title="Edit">✏️</button>
+              <button (click)="deleteStudent(s.id)" class="btn-icon delete" title="Delete">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="paginatedStudents.length === 0">
+          <td colspan="4">
+            <div class="empty-state">
+              <span class="icon">👥</span>
+              <p>No students found matching your search.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="pagination-footer" *ngIf="totalPages > 1">
+    <div class="pagination-info">
+      Showing page {{ currentPage }} of {{ totalPages }}
+    </div>
+    <div class="pagination-btns">
+      <button [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1" class="btn btn-sm btn-secondary">Prev</button>
+      <button *ngFor="let p of [].constructor(totalPages); let i = index" 
+              [class.active]="currentPage === i + 1"
+              (click)="currentPage = i + 1" 
+              class="btn btn-sm btn-secondary">{{ i + 1 }}</button>
+      <button [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1" class="btn btn-sm btn-secondary">Next</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.pagination-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+}
+.pagination-info { font-size: 0.875rem; color: var(--text-muted); }
+.pagination-btns { display: flex; gap: 0.5rem; }
+.pagination-btns .btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+.status-pill {
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.status-pill.active { background: #f0fdf4; color: #16a34a; }
+</style>

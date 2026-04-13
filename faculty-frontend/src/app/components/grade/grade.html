@@ -1,0 +1,219 @@
+<div class="page-header">
+  <div class="header-content">
+    <h1>Grades Management</h1>
+    <p>Record and track student academic performance.</p>
+  </div>
+</div>
+
+<div class="form-card animate-fade-in">
+  <div class="card-header">
+    <h3>{{ isEditing ? 'Edit Grade Record' : 'Upload New Grade' }}</h3>
+    <button *ngIf="isEditing" (click)="resetForm()" class="btn btn-sm btn-danger">Cancel Edit</button>
+  </div>
+  
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner"></div>
+    <span>Processing...</span>
+  </div>
+
+  <form (ngSubmit)="submitGrade()" #f="ngForm" class="modern-form">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Student</label>
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <select name="student_id" [(ngModel)]="newGrade.student_id" required [disabled]="isEditing" #student="ngModel">
+            <option value="" disabled>Select Student</option>
+            <option *ngFor="let s of students" [value]="s.id">{{ s.name }}</option>
+          </select>
+        </div>
+        <div *ngIf="student.invalid && (student.dirty || student.touched)" class="error-text">Student is required</div>
+      </div>
+      <div class="form-group">
+        <label>Subject</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📚</span>
+          <select name="subject" [(ngModel)]="newGrade.subject" required #subject="ngModel">
+            <option value="" disabled>Select Subject</option>
+            <option *ngFor="let sub of subjects" [value]="sub.name">{{ sub.name }} ({{ sub.code }})</option>
+            <option value="Introduction to Programming">Introduction to Programming</option>
+            <option value="Data Structures">Data Structures</option>
+            <option value="Database Systems">Database Systems</option>
+          </select>
+        </div>
+        <div *ngIf="subject.invalid && (subject.dirty || subject.touched)" class="error-text">Subject is required</div>
+      </div>
+      <div class="form-group">
+        <label>Grade Value</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🏆</span>
+          <select name="grade" [(ngModel)]="newGrade.grade" required #gradeVal="ngModel">
+            <option value="" disabled>Select Grade</option>
+            <option value="1.0">1.0 (Excellent)</option>
+            <option value="1.25">1.25</option>
+            <option value="1.5">1.5</option>
+            <option value="1.75">1.75</option>
+            <option value="2.0">2.0</option>
+            <option value="2.25">2.25</option>
+            <option value="2.5">2.5</option>
+            <option value="3.0">3.0 (Passing)</option>
+            <option value="5.0">5.0 (Failed)</option>
+          </select>
+        </div>
+        <div *ngIf="gradeVal.invalid && (gradeVal.dirty || gradeVal.touched)" class="error-text">Grade is required</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="!f.valid || isLoading">
+        <span *ngIf="isLoading" class="icon-spin">⏳</span>
+        {{ isEditing ? 'Update Grade' : 'Upload Grade' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="filters-card animate-fade-in">
+  <div class="card-header">
+    <h3>Filters & Search</h3>
+    <div class="header-actions">
+      <button (click)="exportCSV()" class="btn btn-sm btn-primary">Export CSV</button>
+      <button (click)="resetFilters()" class="btn btn-sm btn-secondary">Reset Filters</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="filters-grid">
+      <div class="filter-group">
+        <label>Search Student</label>
+        <input type="text" [(ngModel)]="filterStudent" (input)="applyFilters()" placeholder="Student name...">
+      </div>
+      <div class="filter-group">
+        <label>Search Subject</label>
+        <input type="text" [(ngModel)]="filterSubject" (input)="applyFilters()" placeholder="Subject name...">
+      </div>
+      <div class="filter-group">
+        <label>Date</label>
+        <div class="input-wrapper">
+          <span class="left-icon">📅</span>
+          <input type="date" [(ngModel)]="filterDate" (change)="applyFilters()">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="table-card animate-fade-in">
+  <div class="card-header">
+    <div class="header-left">
+      <h3>Academic Records</h3>
+      <span class="badge">{{ filteredGrades.length }} Records</span>
+    </div>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="modern-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Subject</th>
+          <th>Grade</th>
+          <th>Date Recorded</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let g of filteredGrades">
+          <td>
+            <div class="user-cell">
+              <div class="user-avatar">{{ g.student_name ? g.student_name.substring(0, 2).toUpperCase() : 'ST' }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ g.student_name }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ g.subject }}</td>
+          <td>
+            <span class="grade-badge" [class.excellent]="+g.grade <= 1.5" [class.failed]="+g.grade >= 5.0">
+              {{ g.grade }}
+            </span>
+          </td>
+          <td>{{ g.created_at | date:'mediumDate' }}</td>
+          <td class="text-right">
+            <div class="action-group">
+              <button (click)="editGrade(g)" class="btn-icon edit" title="Edit">✏️</button>
+              <button (click)="deleteGrade(g.id)" class="btn-icon delete" title="Delete">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredGrades.length === 0">
+          <td colspan="5">
+            <div class="empty-state">
+              <span class="icon">📊</span>
+              <p>No matching grade records found.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<style>
+.loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  gap: 1rem;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.filters-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+}
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+.filter-group label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+.filter-group input:not(.input-wrapper input) {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  outline: none;
+}
+
+.grade-badge {
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.375rem;
+  font-weight: 700;
+  background: #f1f5f9;
+  color: #475569;
+}
+.grade-badge.excellent { background: #f0fdf4; color: #16a34a; }
+.grade-badge.failed { background: #fef2f2; color: #dc2626; }
+</style>

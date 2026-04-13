@@ -1,0 +1,280 @@
+<div class="page-header">
+  <div class="header-content">
+    <h1>Attendance Management</h1>
+    <p>Record and monitor daily student attendance.</p>
+  </div>
+</div>
+
+<div class="form-card animate-fade-in">
+  <div class="card-header">
+    <h3>{{ isEditing ? 'Edit Attendance Record' : 'Mark Attendance' }}</h3>
+    <button *ngIf="isEditing" (click)="cancelEdit()" class="btn btn-sm btn-danger">Cancel Edit</button>
+  </div>
+  <form (ngSubmit)="submitAttendance()" #f="ngForm" class="modern-form">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Student</label>
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <select name="student_id" [(ngModel)]="attendance.student_id" required [disabled]="isEditing" #student="ngModel">
+            <option value="" disabled>Select Student</option>
+            <option *ngFor="let s of students" [value]="s.id">{{ s.name }}</option>
+          </select>
+        </div>
+        <div *ngIf="student.invalid && (student.dirty || student.touched)" class="error-text">Student is required</div>
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <div class="input-wrapper">
+          <span class="left-icon">📅</span>
+         <div class="form-group">
+  <label>Date</label>
+  <div class="input-wrapper">
+    <span class="left-icon">📅</span>
+    <input type="date" [(ngModel)]="selectedDate">
+  </div>
+</div>
+        </div>
+        <div *ngIf="date.invalid && (date.dirty || date.touched)" class="error-text">Date is required</div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📍</span>
+          <select name="status" [(ngModel)]="attendance.status" required #status="ngModel">
+            <option value="" disabled>Select Status</option>
+            <option value="Present">Present</option>
+            <option value="Late">Late</option>
+            <option value="Absent">Absent</option>
+            <option value="Excused">Excused</option>
+          </select>
+        </div>
+        <div *ngIf="status.invalid && (status.dirty || status.touched)" class="error-text">Status is required</div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary" [disabled]="!f.valid || isLoading">
+        <span *ngIf="isLoading" class="icon-spin">⏳</span>
+        {{ isLoading ? 'Processing...' : (isEditing ? 'Update Record' : 'Record Attendance') }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="info-card animate-fade-in">
+  <div class="card-header">
+    <h3>Attendance Summary & History</h3>
+  </div>
+  <div class="card-body">
+    <div class="search-box mb-4">
+      <div class="input-wrapper flex-1">
+        <span class="input-icon">🔍</span>
+        <select [(ngModel)]="searchStudentId" (change)="onSearchStudentChange()" class="modern-select">
+          <option value="" disabled>Select Student to View History</option>
+          <option *ngFor="let s of students" [value]="s.id">{{ s.name }}</option>
+        </select>
+      </div>
+      <button (click)="loadAttendanceHistory()" class="btn btn-primary" [disabled]="isLoading || !searchStudentId">
+        <span *ngIf="isLoading" class="icon-spin">⏳</span>
+        {{ isLoading ? 'Loading...' : 'Refresh History' }}
+      </button>
+    </div>
+
+    <!-- Stats Grid -->
+    <div *ngIf="searchStudentId && attendanceHistory.length >= 0" class="stats-grid mb-4">
+      <div class="mini-stat">
+        <span class="label">Total Records</span>
+        <span class="value">{{ summary.total }}</span>
+      </div>
+      <div class="mini-stat present">
+        <span class="label">Present</span>
+        <span class="value">{{ summary.present }}</span>
+      </div>
+      <div class="mini-stat late">
+        <span class="label">Late</span>
+        <span class="value">{{ summary.late }}</span>
+      </div>
+      <div class="mini-stat absent">
+        <span class="label">Absent</span>
+        <span class="value">{{ summary.absent }}</span>
+      </div>
+      <div class="mini-stat rate">
+        <span class="label">Attendance Rate</span>
+        <span class="value">{{ summary.rate }}</span>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div *ngIf="searchStudentId && attendanceHistory.length > 0" class="filters-row mb-4">
+      <div class="filter-group">
+        <label>Status</label>
+        <select [(ngModel)]="filterStatus" (change)="applyFilters()">
+          <option value="">All Status</option>
+          <option value="Present">Present</option>
+          <option value="Late">Late</option>
+          <option value="Absent">Absent</option>
+          <option value="Excused">Excused</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>From Date</label>
+        <div class="input-wrapper">
+          <span class="left-icon">📅</span>
+          <input type="date" [(ngModel)]="filterStartDate" (change)="applyFilters()">
+        </div>
+      </div>
+      <div class="filter-group">
+        <label>To Date</label>
+        <div class="input-wrapper">
+          <span class="left-icon">📅</span>
+          <input type="date" [(ngModel)]="filterEndDate" (change)="applyFilters()">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button (click)="resetFilters()" class="btn btn-sm btn-secondary">Reset</button>
+        <button (click)="exportCSV()" class="btn btn-sm btn-success">Export CSV</button>
+      </div>
+    </div>
+    
+    <div *ngIf="filteredHistory.length > 0" class="history-list">
+      <div class="table-title">
+        <h4>Attendance History for <strong>{{ selectedStudentName }}</strong></h4>
+      </div>
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of filteredHistory">
+            <td>{{ h.date | date:'fullDate' }}</td>
+            <td>
+              <span class="status-pill" [class]="h.status.toLowerCase()">{{ h.status }}</span>
+            </td>
+            <td class="text-right">
+              <div class="action-group">
+                <button (click)="editRecord(h)" class="btn-icon edit" title="Edit">✏️</button>
+                <button (click)="deleteRecord(h.id)" class="btn-icon delete" title="Delete">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <div *ngIf="filteredHistory.length === 0 && searchStudentId && !isLoading" class="empty-state">
+      <span class="icon">📅</span>
+      <p>{{ attendanceHistory.length === 0 ? 'No attendance records found for this student.' : 'No records match your filters.' }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.mb-4 { margin-bottom: 1.5rem; }
+.flex-1 { flex: 1; }
+
+.table-title {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+.table-title h4 {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.table-title strong {
+  color: var(--primary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.mini-stat {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  transition: all 0.2s;
+}
+.mini-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.mini-stat.present { border-left: 4px solid var(--success); }
+.mini-stat.late { border-left: 4px solid var(--warning); }
+.mini-stat.absent { border-left: 4px solid var(--danger); }
+.mini-stat.rate { border-left: 4px solid var(--primary); }
+.mini-stat .label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.025em; }
+.mini-stat .value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+
+.filters-row {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+.filters-row .filter-group { display: flex; flex-direction: column; gap: 0.5rem; }
+.filters-row label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+.filters-row select:not(.input-wrapper select), .filters-row input:not(.input-wrapper input) {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  outline: none;
+  font-size: 0.875rem;
+  background: white;
+  min-width: 140px;
+}
+.filter-actions { display: flex; gap: 0.75rem; margin-left: auto; }
+
+.status-pill {
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.status-pill.present { background: #f0fdf4; color: #16a34a; }
+.status-pill.absent { background: #fef2f2; color: #dc2626; }
+.status-pill.late { background: #fffbeb; color: #d97706; }
+.status-pill.excused { background: #eff6ff; color: #2563eb; }
+
+.search-box {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+.search-box .input-wrapper {
+  background: white;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+.search-box select {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  outline: none;
+  font-size: 0.875rem;
+  background-color: transparent;
+  cursor: pointer;
+}
+</style>

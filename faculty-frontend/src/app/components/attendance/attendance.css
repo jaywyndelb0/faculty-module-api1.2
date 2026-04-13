@@ -1,0 +1,121 @@
+.page-container {
+  padding: 40px;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group input:not(.input-wrapper input), .form-group select:not(.input-wrapper select) {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+/* Attendance page date field fix */ 
+.form-group input[type="date"] { 
+  width: 100%; 
+  box-sizing: border-box; 
+  padding: 10px 42px 10px 44px; /* right for native icon, left for your custom icon */ 
+  border: 1px solid #ddd; 
+  border-radius: 6px; 
+  background-color: #fff; 
+} 
+
+/* wrapper for custom left icon */ 
+.input-wrapper { 
+  position: relative; 
+} 
+
+.input-wrapper .left-icon { 
+  position: absolute; 
+  left: 14px; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  pointer-events: none; 
+  z-index: 1; 
+} 
+
+/* keep the native calendar icon clickable and visible */ 
+.form-group input[type="date"]::-webkit-calendar-picker-indicator { 
+  opacity: 1; 
+  cursor: pointer; 
+}
+
+.submit-btn, .search-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.search-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.search-row input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+.search-row button {
+  width: auto;
+  padding: 0 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.present { color: #28a745; font-weight: bold; }
+.absent { color: #dc3545; font-weight: bold; }
+.late { color: #ffc107; font-weight: bold; }

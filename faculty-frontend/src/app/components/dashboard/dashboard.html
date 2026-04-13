@@ -1,0 +1,85 @@
+<div class="dashboard-container">
+  <div class="welcome-section">
+    <h1>Welcome back, Admin! 👋</h1>
+    <p>Here's what's happening in your school today.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stats-card faculty">
+      <div class="stats-icon">👨‍🏫</div>
+      <div class="stats-info">
+        <h3>Total Faculty</h3>
+        <span class="count">{{ stats.facultyCount }}</span>
+        <span class="trend positive">↑ Live data</span>
+      </div>
+    </div>
+    <div class="stats-card students">
+      <div class="stats-icon">🎓</div>
+      <div class="stats-info">
+        <h3>Total Students</h3>
+        <span class="count">{{ stats.studentCount }}</span>
+        <span class="trend positive">↑ Live data</span>
+      </div>
+    </div>
+    <div class="stats-card attendance">
+      <div class="stats-icon">📊</div>
+      <div class="stats-info">
+        <h3>Total Grades</h3>
+        <span class="count">{{ stats.gradesCount }}</span>
+        <span class="trend positive">↑ Recorded</span>
+      </div>
+    </div>
+    <div class="stats-card performance">
+      <div class="stats-icon">📊</div>
+      <div class="stats-info">
+        <h3>Avg. Performance</h3>
+        <span class="count">{{ stats.avgPerformance }}</span>
+        <span class="trend positive">↑ GPA Avg.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="module-grid">
+    <div *ngFor="let module of modules" class="module-card" [routerLink]="module.route">
+      <div class="module-header">
+        <div class="module-icon">{{ module.icon }}</div>
+        <button class="action-btn">⋮</button>
+      </div>
+      <div class="module-body">
+        <h3>{{ module.name }}</h3>
+        <p>{{ module.description }}</p>
+      </div>
+      <div class="module-footer">
+        <span class="path">{{ module.route }}</span>
+        <span class="status">Active</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="recent-activity">
+    <h3>Recent Activity</h3>
+    <div class="activity-list">
+      <div class="activity-item">
+        <div class="activity-avatar">JD</div>
+        <div class="activity-content">
+          <p><strong>John Doe</strong> was added to the Faculty module.</p>
+          <small>2 hours ago</small>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-avatar">AS</div>
+        <div class="activity-content">
+          <p><strong>Alice Smith</strong> uploaded new grades for CS101.</p>
+          <small>4 hours ago</small>
+        </div>
+      </div>
+      <div class="activity-item">
+        <div class="activity-avatar">SYS</div>
+        <div class="activity-content">
+          <p>Attendance report generated for today.</p>
+          <small>5 hours ago</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
