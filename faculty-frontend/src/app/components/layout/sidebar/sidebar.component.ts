@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 
 @Component({
   selector: 'app-sidebar',
@@ -8,110 +8,294 @@ import { RouterModule } from '@angular/router';
   imports: [CommonModule, RouterModule],
   template: `
     <div class="sidebar">
-      <div class="sidebar-header">
-        <span class="logo-icon">🏫</span>
-        <span class="logo-text">EduAdmin</span>
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <span class="logo-icon">🏫</span>
+        </div>
+        <div class="brand-info">
+          <span class="brand-name">EduAdmin</span>
+          <span class="brand-tag">Management System</span>
+        </div>
       </div>
-      <nav class="sidebar-nav">
-        <ul>
-          <li>
-            <a routerLink="/dashboard" routerLinkActive="active">
-              <span class="icon">📊</span>
-              <span class="text">Dashboard</span>
+
+      <div class="sidebar-scroll custom-scrollbar">
+        <div class="nav-section">
+          <span class="section-label">Main Menu</span>
+          <nav class="nav-list">
+            <a routerLink="/dashboard" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📊</span>
+              <span class="nav-text">Dashboard</span>
+              <span class="nav-indicator"></span>
             </a>
-          </li>
-          <li>
-            <a routerLink="/faculty" routerLinkActive="active">
-              <span class="icon">👨‍🏫</span>
-              <span class="text">Faculty</span>
+            <a routerLink="/faculty" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">👨‍🏫</span>
+              <span class="nav-text">Faculty</span>
+              <span class="nav-indicator"></span>
             </a>
-          </li>
-          <li>
-            <a routerLink="/student" routerLinkActive="active">
-              <span class="icon">🎓</span>
-              <span class="text">Students</span>
+            <a routerLink="/student" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">🎓</span>
+              <span class="nav-text">Students</span>
+              <span class="nav-indicator"></span>
             </a>
-          </li>
-          <li>
-            <a routerLink="/grade" routerLinkActive="active">
-              <span class="icon">📈</span>
-              <span class="text">Grades</span>
+            <a routerLink="/grade" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📈</span>
+              <span class="nav-text">Grades</span>
+              <span class="nav-indicator"></span>
             </a>
-          </li>
-          <li>
-            <a routerLink="/attendance" routerLinkActive="active">
-              <span class="icon">📝</span>
-              <span class="text">Attendance</span>
+            <a routerLink="/attendance" routerLinkActive="active" class="nav-item">
+              <span class="nav-icon">📝</span>
+              <span class="nav-text">Attendance</span>
+              <span class="nav-indicator"></span>
             </a>
-          </li>
-        </ul>
-      </nav>
+          </nav>
+        </div>
+
+        <div class="nav-section">
+          <span class="section-label">Settings & Reports</span>
+          <nav class="nav-list">
+            <a href="#" class="nav-item">
+              <span class="nav-icon">⚙️</span>
+              <span class="nav-text">Settings</span>
+            </a>
+            <a href="#" class="nav-item">
+              <span class="nav-icon">📄</span>
+              <span class="nav-text">Reports</span>
+            </a>
+          </nav>
+        </div>
+      </div>
+
       <div class="sidebar-footer">
-        <button (click)="logout()" class="logout-btn">
-          <span class="icon">🚪</span>
-          <span class="text">Logout</span>
-        </button>
+        <div class="user-card">
+          <div class="user-avatar">AD</div>
+          <div class="user-details">
+            <span class="user-name">Admin User</span>
+            <span class="user-status">Online</span>
+          </div>
+          <button (click)="logout()" class="logout-btn" title="Logout">
+            <span>🚪</span>
+          </button>
+        </div>
       </div>
     </div>
   `,
   styles: [`
     .sidebar {
-      width: 260px;
+      width: var(--sidebar-width);
       height: 100vh;
-      background: #1e293b;
-      color: #f8fafc;
+      background: white;
+      border-right: 1px solid var(--border-light);
       display: flex;
       flex-direction: column;
       position: fixed;
       left: 0;
       top: 0;
-      transition: all 0.3s ease;
       z-index: 1000;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .sidebar-header {
-      padding: 2rem 1.5rem;
+
+    .sidebar-brand {
+      height: var(--header-height);
+      padding: 0 1.5rem;
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      border-bottom: 1px solid #334155;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-light);
     }
-    .logo-icon { font-size: 1.5rem; }
-    .logo-text { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.025em; }
-    .sidebar-nav { flex: 1; padding: 1.5rem 0; }
-    .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
-    .sidebar-nav li { margin-bottom: 0.25rem; }
-    .sidebar-nav a {
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem 1.5rem;
-      color: #94a3b8;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.4);
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-name {
+      font-size: 1.125rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+
+    .brand-tag {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+    }
+
+    .nav-section {
+      margin-bottom: 2rem;
+    }
+
+    .section-label {
+      display: block;
+      padding: 0 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-placeholder);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      color: var(--text-body);
       text-decoration: none;
-      transition: all 0.2s;
+      font-size: 0.875rem;
+      font-weight: 600;
+      position: relative;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .sidebar-nav a:hover { background: #334155; color: #f8fafc; }
-    .sidebar-nav a.active { background: #3b82f6; color: #ffffff; }
-    .sidebar-nav .icon { font-size: 1.25rem; }
-    .sidebar-footer { padding: 1.5rem; border-top: 1px solid #334155; }
-    .logout-btn {
-      width: 100%;
+
+    .nav-item:hover {
+      background: var(--bg-main);
+      color: var(--primary);
+    }
+
+    .nav-item.active {
+      background: var(--primary-surface);
+      color: var(--primary);
+    }
+
+    .nav-icon {
+      font-size: 1.25rem;
+      width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-indicator {
+      position: absolute;
+      right: 0.75rem;
+      width: 4px;
+      height: 4px;
+      background: var(--primary);
+      border-radius: 50%;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s ease;
+    }
+
+    .nav-item.active .nav-indicator {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .sidebar-footer {
+      padding: 1.25rem;
+      border-top: 1px solid var(--border-light);
+      background: var(--bg-main);
+    }
+
+    .user-card {
       display: flex;
       align-items: center;
       gap: 0.75rem;
       padding: 0.75rem;
-      background: transparent;
-      border: 1px solid #334155;
-      color: #94a3b8;
-      border-radius: 0.5rem;
+      background: white;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--primary-surface);
+      color: var(--primary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+
+    .user-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-status {
+      font-size: 0.65rem;
+      color: var(--success);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .user-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      padding: 6px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      color: var(--text-muted);
       transition: all 0.2s;
     }
-    .logout-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+    .logout-btn:hover {
+      background: var(--danger-surface);
+      color: var(--danger);
+    }
   `]
 })
 export class SidebarComponent {
+  constructor(private router: Router) {}
+
   logout() {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    this.router.navigate(['/login']);
   }
 }

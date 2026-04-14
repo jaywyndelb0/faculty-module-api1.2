@@ -6,6 +6,7 @@ import { ApiService } from '../../services/api.service';
 import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
 import { NotificationService } from '../../services/notification.service';
+import { ActivityService } from '../../services/activity.service';
 import { Subscription, combineLatest } from 'rxjs';
 import { Grade, Student, Subject } from '../../models/api.models';
 
@@ -38,7 +39,8 @@ export class GradeComponent implements OnInit, OnDestroy {
     private apiService: ApiService, 
     private dataService: DataService,
     private toast: ToastService,
-    private notifService: NotificationService
+    private notifService: NotificationService,
+    private activityService: ActivityService
   ) {}
 
   ngOnInit() {
@@ -95,6 +97,8 @@ export class GradeComponent implements OnInit, OnDestroy {
       this.apiService.updateGrade(this.editingGradeId, gradeData).subscribe({
         next: () => {
           this.toast.success('Grade updated');
+          const student = this.students.find(s => s.id.toString() === this.newGrade.student_id);
+          this.activityService.addActivity('grade', 'Updated Grade', `for ${student?.name || 'Student'}`);
           this.dataService.refreshGrades();
           this.resetForm();
           this.isLoading = false;
@@ -117,6 +121,8 @@ export class GradeComponent implements OnInit, OnDestroy {
             message: `New grade <strong>${this.newGrade.grade}</strong> uploaded for <strong>${student ? student.name : 'Unknown Student'}</strong> in <strong>${this.newGrade.subject}</strong>`,
             type: 'grade'
           });
+
+          this.activityService.addActivity('grade', 'Uploaded Grade', `${this.newGrade.grade} for ${student?.name || 'Student'}`);
 
           this.dataService.refreshGrades();
           this.resetForm();
@@ -142,11 +148,13 @@ export class GradeComponent implements OnInit, OnDestroy {
   }
 
   deleteGrade(id: number) {
+    const gradeToDelete = this.grades.find(g => g.id === id);
     if (confirm('Are you sure you want to delete this grade record?')) {
       this.isLoading = true;
       this.apiService.deleteGrade(id).subscribe({
         next: () => {
           this.toast.success('Grade deleted');
+          this.activityService.addActivity('grade', 'Deleted Grade', `for ${gradeToDelete?.student_name || 'Student'}`);
           this.dataService.refreshGrades();
           this.isLoading = false;
         },

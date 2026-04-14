@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
+import { ActivityService } from '../../services/activity.service';
 import { Subscription } from 'rxjs';
 import { Faculty } from '../../models/api.models';
 
@@ -37,7 +38,8 @@ export class FacultyComponent implements OnInit, OnDestroy {
   constructor(
     private apiService: ApiService, 
     private dataService: DataService,
-    private toast: ToastService
+    private toast: ToastService,
+    private activityService: ActivityService
   ) {}
 
   ngOnInit() {
@@ -89,6 +91,7 @@ export class FacultyComponent implements OnInit, OnDestroy {
       this.apiService.updateFaculty(this.editingId, this.newFaculty).subscribe({
         next: () => {
           this.toast.success('Faculty updated successfully');
+          this.activityService.addActivity('faculty', 'Updated Faculty', this.newFaculty.name);
           this.dataService.refreshFaculty();
           this.cancelEdit();
           this.isLoading = false;
@@ -102,6 +105,7 @@ export class FacultyComponent implements OnInit, OnDestroy {
       this.apiService.createFaculty(this.newFaculty).subscribe({
         next: () => {
           this.toast.success('Faculty added successfully');
+          this.activityService.addActivity('faculty', 'Added New Faculty', this.newFaculty.name);
           this.dataService.refreshFaculty();
           this.resetForm();
           this.isAdding = false;
@@ -139,11 +143,13 @@ export class FacultyComponent implements OnInit, OnDestroy {
   }
 
   deleteFaculty(id: number) {
+    const facultyToDelete = this.facultyList.find(f => f.id === id);
     if (confirm('Are you sure you want to delete this faculty member?')) {
       this.isLoading = true;
       this.apiService.deleteFaculty(id).subscribe({
         next: () => {
           this.toast.success('Faculty member deleted');
+          this.activityService.addActivity('faculty', 'Deleted Faculty', facultyToDelete?.name || 'Unknown');
           this.dataService.refreshFaculty();
           this.isLoading = false;
         },
@@ -154,4 +160,5 @@ export class FacultyComponent implements OnInit, OnDestroy {
       });
     }
   }
+}
 }

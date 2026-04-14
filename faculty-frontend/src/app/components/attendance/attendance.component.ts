@@ -6,6 +6,7 @@ import { ApiService } from '../../services/api.service';
 import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
 import { NotificationService } from '../../services/notification.service';
+import { ActivityService } from '../../services/activity.service';
 import { Subscription } from 'rxjs';
 import { Student, Attendance } from '../../models/api.models';
 
@@ -52,7 +53,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     private apiService: ApiService, 
     private dataService: DataService,
     private toast: ToastService,
-    private notifService: NotificationService
+    private notifService: NotificationService,
+    private activityService: ActivityService
   ) {}
 
   ngOnInit() {
@@ -83,6 +85,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       this.apiService.updateAttendance(this.editingId, attendanceData).subscribe({
         next: () => {
           this.toast.success('Attendance updated successfully');
+          const student = this.students.find(s => s.id.toString() === this.attendance.student_id);
+          this.activityService.addActivity('attendance', 'Updated Attendance', `for ${student?.name || 'Student'}`);
           this.loadAttendanceHistory();
           this.cancelEdit();
           this.isLoading = false;
@@ -105,6 +109,8 @@ export class AttendanceComponent implements OnInit, OnDestroy {
             message: `<strong>${this.attendance.status}</strong> recorded for <strong>${student ? student.name : 'Unknown Student'}</strong> on ${this.attendance.date}`,
             type: 'attendance'
           });
+
+          this.activityService.addActivity('attendance', 'Recorded Attendance', `${this.attendance.status} for ${student?.name || 'Student'}`);
 
           if (this.searchStudentId === this.attendance.student_id) {
             this.loadAttendanceHistory();
@@ -198,11 +204,13 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   }
 
   deleteRecord(id: number) {
+    const recordToDelete = this.attendanceHistory.find(h => h.id === id);
     if (confirm('Are you sure you want to delete this attendance record?')) {
       this.isLoading = true;
       this.apiService.deleteAttendance(id).subscribe({
         next: () => {
           this.toast.success('Attendance record deleted');
+          this.activityService.addActivity('attendance', 'Deleted Attendance', `for Student ID ${recordToDelete?.student_id || id}`);
           this.loadAttendanceHistory();
           this.isLoading = false;
         },

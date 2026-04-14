@@ -27,13 +27,13 @@ import { HeaderComponent } from '../header/header.component';
     }
     .main-wrapper {
       flex: 1;
-      margin-left: 260px;
+      margin-left: var(--sidebar-width);
       display: flex;
       flex-direction: column;
       transition: all 0.3s ease;
     }
     .main-content {
-      padding: 2rem;
+      padding: 0;
       flex: 1;
     }
   `]

@@ -1,80 +1,82 @@
-<div class="page-header">
-  <div class="header-content">
-    <h1>Faculty Management</h1>
-    <p>Manage and monitor your school's teaching staff.</p>
-  </div>
-  <div class="header-actions">
-    <button (click)="isAdding = !isAdding; isEditing = false; resetForm()" class="btn btn-primary">
-      <span class="icon">{{ isAdding ? '✕' : '＋' }}</span>
-      {{ isAdding ? 'Cancel' : 'Add Faculty' }}
-    </button>
-  </div>
-</div>
-
-<div *ngIf="isAdding" class="form-card animate-fade-in">
-  <div class="card-header">
-    <h3>{{ isEditing ? 'Edit Faculty Member' : 'Add New Faculty Member' }}</h3>
-  </div>
-  <form (ngSubmit)="addFaculty()" #f="ngForm" class="modern-form">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Full Name</label>
-        <div class="input-wrapper">
-          <span class="input-icon">👤</span>
-          <input type="text" name="name" [(ngModel)]="newFaculty.name" placeholder="e.g. Dr. Jane Smith" required pattern="^[a-zA-Z\.\s]*$" #name="ngModel">
-        </div>
-        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error-text">
-          <span *ngIf="name.errors?.['required']">Name is required</span>
-          <span *ngIf="name.errors?.['pattern']">Invalid characters in name</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Email Address</label>
-        <div class="input-wrapper">
-          <span class="input-icon">✉️</span>
-          <input type="email" name="email" [(ngModel)]="newFaculty.email" placeholder="e.g. jane.smith@school.edu" required email #email="ngModel">
-        </div>
-        <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error-text">
-          <span *ngIf="email.errors?.['required']">Email is required</span>
-          <span *ngIf="email.errors?.['email']">Enter a valid email</span>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Department</label>
-        <div class="input-wrapper">
-          <span class="input-icon">🏢</span>
-          <select name="department" [(ngModel)]="newFaculty.department" required #dept="ngModel">
-            <option value="" disabled>Select Department</option>
-            <option value="Computer Science">Computer Science</option>
-            <option value="Mathematics">Mathematics</option>
-            <option value="Physics">Physics</option>
-            <option value="Arts">Arts</option>
-          </select>
-        </div>
-        <div *ngIf="dept.invalid && (dept.dirty || dept.touched)" class="error-text">Department is required</div>
-      </div>
+<div class="faculty-container animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Faculty Management</h1>
+      <p>Manage and monitor your school's teaching staff.</p>
     </div>
-    <div class="form-actions">
-      <button type="submit" class="btn btn-success" [disabled]="!f.valid || isLoading">
-        <span *ngIf="isLoading" class="icon-spin">⏳</span>
-        {{ isLoading ? 'Processing...' : (isEditing ? 'Update Faculty' : 'Save Faculty Member') }}
+    <div class="header-actions">
+      <button (click)="isAdding = !isAdding; isEditing = false; resetForm()" class="btn btn-add-faculty">
+        <span class="icon">{{ isAdding ? '✕' : '＋' }}</span>
+        {{ isAdding ? 'Cancel' : 'Add Faculty' }}
       </button>
     </div>
-  </form>
-</div>
-
-<div class="filters-card animate-fade-in">
-  <div class="card-header">
-    <h3>Filters & Search</h3>
-    <button (click)="resetFilters()" class="btn btn-sm btn-secondary">Reset Filters</button>
   </div>
-  <div class="card-body">
+
+  <!-- Form Card -->
+  <div *ngIf="isAdding" class="form-card premium-card animate-fade-in">
+    <div class="card-header-premium">
+      <h3>{{ isEditing ? 'Edit Faculty Member' : 'Add New Faculty Member' }}</h3>
+    </div>
+    <form (ngSubmit)="addFaculty()" #f="ngForm" class="modern-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Full Name</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input type="text" name="name" [(ngModel)]="newFaculty.name" placeholder="e.g. Dr. Jane Smith" required pattern="^[a-zA-Z\.\s]*$" #name="ngModel">
+          </div>
+          <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error-text">
+            <span *ngIf="name.errors?.['required']">Name is required</span>
+            <span *ngIf="name.errors?.['pattern']">Invalid characters in name</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">✉️</span>
+            <input type="email" name="email" [(ngModel)]="newFaculty.email" placeholder="e.g. jane.smith@school.edu" required email #email="ngModel">
+          </div>
+          <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error-text">
+            <span *ngIf="email.errors?.['required']">Email is required</span>
+            <span *ngIf="email.errors?.['email']">Enter a valid email</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🏢</span>
+            <select name="department" [(ngModel)]="newFaculty.department" required #dept="ngModel">
+              <option value="" disabled>Select Department</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Mathematics">Mathematics</option>
+              <option value="Physics">Physics</option>
+              <option value="Arts">Arts</option>
+            </select>
+          </div>
+          <div *ngIf="dept.invalid && (dept.dirty || dept.touched)" class="error-text">Department is required</div>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top: 1rem; display: flex; justify-content: flex-end;">
+        <button type="submit" class="btn btn-primary" [disabled]="!f.valid || isLoading" style="min-width: 160px;">
+          <span *ngIf="isLoading" class="spinner"></span>
+          {{ isLoading ? 'Processing...' : (isEditing ? 'Update Faculty' : 'Save Faculty Member') }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters Card -->
+  <div class="filters-card premium-card">
+    <div class="filters-header">
+      <h3><span>🔍</span> Filters & Search</h3>
+      <button (click)="resetFilters()" class="text-btn">Reset Filters</button>
+    </div>
     <div class="filters-grid">
       <div class="filter-group">
         <label>Search Name or Email</label>
         <div class="input-wrapper">
           <span class="input-icon">🔍</span>
-          <input type="text" [(ngModel)]="filterText" (input)="applyFilters()" placeholder="Type to search...">
+          <input type="text" [(ngModel)]="filterText" (input)="applyFilters()" placeholder="Type to search faculty...">
         </div>
       </div>
       <div class="filter-group">
@@ -92,85 +94,79 @@
       </div>
     </div>
   </div>
-</div>
 
-<div class="table-card animate-fade-in">
-  <div class="card-header">
-    <div class="header-left">
-      <h3>Faculty List</h3>
-      <span class="badge">{{ filteredFaculty.length }} Members</span>
+  <!-- Table Card -->
+  <div class="table-card premium-card">
+    <div class="card-header-premium">
+      <div class="header-left">
+        <h3>Faculty List</h3>
+        <span class="unread-tag" style="margin-top: 0; margin-left: 1rem;">{{ filteredFaculty.length }} Members</span>
+      </div>
     </div>
-  </div>
-  
-  <div class="table-responsive">
-    <table class="modern-table">
-      <thead>
-        <tr>
-          <th>Faculty Member</th>
-          <th>Department</th>
-          <th>Joined Date</th>
-          <th class="text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let f of paginatedFaculty">
-          <td>
-            <div class="user-cell">
-              <div class="user-avatar">{{ f.name.substring(0, 2).toUpperCase() }}</div>
-              <div class="user-info">
-                <span class="user-name">{{ f.name }}</span>
-                <span class="user-email">{{ f.email }}</span>
+    
+    <div class="table-responsive">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Faculty Member</th>
+            <th>Department</th>
+            <th>Joined Date</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of paginatedFaculty">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar">{{ f.name.substring(0, 2).toUpperCase() }}</div>
+                <div class="user-info">
+                  <span class="user-name">{{ f.name }}</span>
+                  <span class="user-email">{{ f.email }}</span>
+                </div>
               </div>
-            </div>
-          </td>
-          <td>
-            <span class="dept-badge">{{ f.department }}</span>
-          </td>
-          <td>{{ (f.created_at | date) || 'N/A' }}</td>
-          <td class="text-right">
-            <div class="action-group">
-              <button (click)="editFaculty(f)" class="btn-icon edit" title="Edit">✏️</button>
-              <button (click)="deleteFaculty(f.id)" class="btn-icon delete" title="Delete">🗑️</button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="paginatedFaculty.length === 0">
-          <td colspan="4">
-            <div class="empty-state">
-              <span class="icon">📭</span>
-              <p>No faculty members found matching your search.</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="pagination-footer" *ngIf="totalPages > 1">
-    <div class="pagination-info">
-      Showing page {{ currentPage }} of {{ totalPages }}
+            </td>
+            <td>
+              <span class="dept-badge" 
+                    [class.dept-cs]="f.department === 'Computer Science'"
+                    [class.dept-math]="f.department === 'Mathematics'"
+                    [class.dept-physics]="f.department === 'Physics'"
+                    [class.dept-arts]="f.department === 'Arts'">
+                {{ f.department }}
+              </span>
+            </td>
+            <td>{{ (f.created_at | date:'mediumDate') || 'N/A' }}</td>
+            <td class="text-right">
+              <div class="action-group">
+                <button (click)="editFaculty(f)" class="btn-icon edit" title="Edit">✏️</button>
+                <button (click)="deleteFaculty(f.id)" class="btn-icon delete" title="Delete">🗑️</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedFaculty.length === 0">
+            <td colspan="4">
+              <div class="empty-state">
+                <span class="icon">📭</span>
+                <p>No faculty members found matching your search.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div class="pagination-btns">
-      <button [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1" class="btn btn-sm btn-secondary">Prev</button>
-      <button *ngFor="let p of [].constructor(totalPages); let i = index" 
-              [class.active]="currentPage === i + 1"
-              (click)="currentPage = i + 1" 
-              class="btn btn-sm btn-secondary">{{ i + 1 }}</button>
-      <button [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1" class="btn btn-sm btn-secondary">Next</button>
+
+    <!-- Pagination -->
+    <div class="pagination-footer" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        Showing page {{ currentPage }} of {{ totalPages }}
+      </div>
+      <div class="pagination-btns">
+        <button [disabled]="currentPage === 1" (click)="currentPage = currentPage - 1" class="btn-page">‹</button>
+        <button *ngFor="let p of [].constructor(totalPages); let i = index" 
+                [class.active]="currentPage === i + 1"
+                (click)="currentPage = i + 1" 
+                class="btn-page">{{ i + 1 }}</button>
+        <button [disabled]="currentPage === totalPages" (click)="currentPage = currentPage + 1" class="btn-page">›</button>
+      </div>
     </div>
   </div>
 </div>
-
-<style>
-.pagination-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f8fafc;
-}
-.pagination-info { font-size: 0.875rem; color: var(--text-muted); }
-.pagination-btns { display: flex; gap: 0.5rem; }
-.pagination-btns .btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-</style>

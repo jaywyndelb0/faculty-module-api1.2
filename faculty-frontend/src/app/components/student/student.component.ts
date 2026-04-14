@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
+import { ActivityService } from '../../services/activity.service';
 import { Subscription, combineLatest } from 'rxjs';
 import { Student, Section } from '../../models/api.models';
 
@@ -38,7 +39,8 @@ export class StudentComponent implements OnInit, OnDestroy {
   constructor(
     private apiService: ApiService, 
     private dataService: DataService,
-    private toast: ToastService
+    private toast: ToastService,
+    private activityService: ActivityService
   ) {}
 
   ngOnInit() {
@@ -95,6 +97,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       this.apiService.updateStudent(this.editingId, studentData).subscribe({
         next: () => {
           this.toast.success('Student updated');
+          this.activityService.addActivity('student', 'Updated Student', this.newStudent.name);
           this.dataService.refreshStudents();
           this.cancelEdit();
           this.isLoading = false;
@@ -108,6 +111,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       this.apiService.createStudent(studentData).subscribe({
         next: () => {
           this.toast.success('Student added');
+          this.activityService.addActivity('student', 'Enrolled New Student', this.newStudent.name);
           this.dataService.refreshStudents();
           this.newStudent = { name: '', section_id: '' };
           this.isAdding = false;
@@ -137,11 +141,13 @@ export class StudentComponent implements OnInit, OnDestroy {
   }
 
   deleteStudent(id: number) {
+    const studentToDelete = this.students.find(s => s.id === id);
     if (confirm('Are you sure you want to delete this student?')) {
       this.isLoading = true;
       this.apiService.deleteStudent(id).subscribe({
         next: () => {
           this.toast.success('Student deleted');
+          this.activityService.addActivity('student', 'Removed Student', studentToDelete?.name || 'Unknown');
           this.dataService.refreshStudents();
           this.isLoading = false;
         },
@@ -152,4 +158,5 @@ export class StudentComponent implements OnInit, OnDestroy {
       });
     }
   }
+}
 }
