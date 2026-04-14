@@ -16,11 +16,6 @@ import { Subscription, combineLatest } from 'rxjs';
           <h1>Dashboard Overview</h1>
           <p>Welcome back! Here's what's happening with your school system today.</p>
         </div>
-        <div class="welcome-actions">
-          <button class="btn btn-primary">
-            <span>+</span> Quick Action
-          </button>
-        </div>
       </div>
 
       <!-- Stat Cards -->
@@ -104,30 +99,6 @@ import { Subscription, combineLatest } from 'rxjs';
               <div class="empty-icon">📭</div>
               <p>No recent activities found.</p>
             </div>
-          </div>
-        </div>
-
-        <div class="quick-links-card premium-card">
-          <div class="card-header-premium">
-            <h3>Quick Resources</h3>
-          </div>
-          <div class="links-grid">
-            <a href="#" class="quick-link">
-              <span class="link-icon">📁</span>
-              <span>Class Reports</span>
-            </a>
-            <a href="#" class="quick-link">
-              <span class="link-icon">📅</span>
-              <span>Academic Calendar</span>
-            </a>
-            <a href="#" class="quick-link">
-              <span class="link-icon">📩</span>
-              <span>Message Center</span>
-            </a>
-            <a href="#" class="quick-link">
-              <span class="link-icon">🛡️</span>
-              <span>Security Logs</span>
-            </a>
           </div>
         </div>
       </div>
@@ -293,7 +264,7 @@ import { Subscription, combineLatest } from 'rxjs';
     /* Bottom Grid */
     .bottom-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 1fr;
       gap: 1.5rem;
     }
 
@@ -383,41 +354,6 @@ import { Subscription, combineLatest } from 'rxjs';
       animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
     }
 
-    .links-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      padding: 1.5rem;
-    }
-
-    .quick-link {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1.25rem;
-      background: var(--bg-main);
-      border-radius: var(--radius-md);
-      text-decoration: none;
-      color: var(--text-body);
-      font-size: 0.8125rem;
-      font-weight: 700;
-      gap: 0.5rem;
-      transition: all 0.2s ease;
-      border: 1px solid transparent;
-    }
-
-    .quick-link:hover {
-      background: white;
-      border-color: var(--primary-light);
-      color: var(--primary);
-      box-shadow: var(--shadow-md);
-    }
-
-    .link-icon {
-      font-size: 1.5rem;
-    }
-
     .text-btn {
       background: none;
       border: none;
@@ -435,7 +371,6 @@ import { Subscription, combineLatest } from 'rxjs';
       .dashboard-container { padding: 1.5rem; }
       .welcome-section { flex-direction: column; align-items: flex-start; gap: 1rem; }
       .stats-grid { grid-template-columns: 1fr; }
-      .links-grid { grid-template-columns: 1fr; }
     }
   `]
 })

@@ -159,4 +159,3 @@ export class StudentComponent implements OnInit, OnDestroy {
     }
   }
 }
-}

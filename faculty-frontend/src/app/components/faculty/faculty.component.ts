@@ -160,5 +160,9 @@ export class FacultyComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  onPageChange(page: number) {
+    this.currentPage = page;
+  }
 }
-}
+

@@ -1,159 +1,165 @@
-<div class="page-header">
-  <div class="header-content">
-    <h1>Grades Management</h1>
-    <p>Record and track student academic performance.</p>
-  </div>
-</div>
-
-<div class="form-card animate-fade-in">
-  <div class="card-header">
-    <h3>{{ isEditing ? 'Edit Grade Record' : 'Upload New Grade' }}</h3>
-    <button *ngIf="isEditing" (click)="resetForm()" class="btn btn-sm btn-danger">Cancel Edit</button>
-  </div>
-  
-  <div *ngIf="isLoading" class="loading-overlay">
-    <div class="spinner"></div>
-    <span>Processing...</span>
-  </div>
-
-  <form (ngSubmit)="submitGrade()" #f="ngForm" class="modern-form">
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Student</label>
-        <div class="input-wrapper">
-          <span class="input-icon">👤</span>
-          <select name="student_id" [(ngModel)]="newGrade.student_id" required [disabled]="isEditing" #student="ngModel">
-            <option value="" disabled>Select Student</option>
-            <option *ngFor="let s of students" [value]="s.id">{{ s.name }}</option>
-          </select>
-        </div>
-        <div *ngIf="student.invalid && (student.dirty || student.touched)" class="error-text">Student is required</div>
-      </div>
-      <div class="form-group">
-        <label>Subject</label>
-        <div class="input-wrapper">
-          <span class="input-icon">📚</span>
-          <select name="subject" [(ngModel)]="newGrade.subject" required #subject="ngModel">
-            <option value="" disabled>Select Subject</option>
-            <option *ngFor="let sub of subjects" [value]="sub.name">{{ sub.name }} ({{ sub.code }})</option>
-            <option value="Introduction to Programming">Introduction to Programming</option>
-            <option value="Data Structures">Data Structures</option>
-            <option value="Database Systems">Database Systems</option>
-          </select>
-        </div>
-        <div *ngIf="subject.invalid && (subject.dirty || subject.touched)" class="error-text">Subject is required</div>
-      </div>
-      <div class="form-group">
-        <label>Grade Value</label>
-        <div class="input-wrapper">
-          <span class="input-icon">🏆</span>
-          <select name="grade" [(ngModel)]="newGrade.grade" required #gradeVal="ngModel">
-            <option value="" disabled>Select Grade</option>
-            <option value="1.0">1.0 (Excellent)</option>
-            <option value="1.25">1.25</option>
-            <option value="1.5">1.5</option>
-            <option value="1.75">1.75</option>
-            <option value="2.0">2.0</option>
-            <option value="2.25">2.25</option>
-            <option value="2.5">2.5</option>
-            <option value="3.0">3.0 (Passing)</option>
-            <option value="5.0">5.0 (Failed)</option>
-          </select>
-        </div>
-        <div *ngIf="gradeVal.invalid && (gradeVal.dirty || gradeVal.touched)" class="error-text">Grade is required</div>
-      </div>
-    </div>
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary" [disabled]="!f.valid || isLoading">
-        <span *ngIf="isLoading" class="icon-spin">⏳</span>
-        {{ isEditing ? 'Update Grade' : 'Upload Grade' }}
-      </button>
-    </div>
-  </form>
-</div>
-
-<div class="filters-card animate-fade-in">
-  <div class="card-header">
-    <h3>Filters & Search</h3>
-    <div class="header-actions">
-      <button (click)="exportCSV()" class="btn btn-sm btn-primary">Export CSV</button>
-      <button (click)="resetFilters()" class="btn btn-sm btn-secondary">Reset Filters</button>
+<div class="grade-container animate-fade-in">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Grades Management</h1>
+      <p>Record and track student academic performance.</p>
     </div>
   </div>
-  <div class="card-body">
+
+  <div class="form-card premium-card animate-fade-in">
+    <div class="card-header-premium">
+      <h3>{{ isEditing ? 'Edit Grade Record' : 'Upload New Grade' }}</h3>
+      <button *ngIf="isEditing" (click)="resetForm()" class="btn btn-sm btn-danger">Cancel Edit</button>
+    </div>
+    
+    <div *ngIf="isLoading" class="loading-overlay">
+      <div class="spinner"></div>
+      <span>Processing...</span>
+    </div>
+
+    <form (ngSubmit)="submitGrade()" #f="ngForm" class="modern-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Student</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <select name="student_id" [(ngModel)]="newGrade.student_id" required [disabled]="isEditing" #student="ngModel" class="modern-select">
+              <option value="" disabled>Select Student</option>
+              <option *ngFor="let s of students" [value]="s.id">{{ s.name }}</option>
+            </select>
+          </div>
+          <div *ngIf="student.invalid && (student.dirty || student.touched)" class="error-text">Student is required</div>
+        </div>
+        <div class="form-group">
+          <label>Subject</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📚</span>
+            <select name="subject" [(ngModel)]="newGrade.subject" required #subject="ngModel" class="modern-select">
+              <option value="" disabled>Select Subject</option>
+              <option *ngFor="let sub of subjects" [value]="sub.name">{{ sub.name }} ({{ sub.code }})</option>
+              <option value="Introduction to Programming">Introduction to Programming</option>
+              <option value="Data Structures">Data Structures</option>
+              <option value="Database Systems">Database Systems</option>
+            </select>
+          </div>
+          <div *ngIf="subject.invalid && (subject.dirty || subject.touched)" class="error-text">Subject is required</div>
+        </div>
+        <div class="form-group">
+          <label>Grade Value</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🏆</span>
+            <select name="grade" [(ngModel)]="newGrade.grade" required #gradeVal="ngModel" class="modern-select">
+              <option value="" disabled>Select Grade</option>
+              <option value="1.0">1.0 (Excellent)</option>
+              <option value="1.25">1.25</option>
+              <option value="1.5">1.5</option>
+              <option value="1.75">1.75</option>
+              <option value="2.0">2.0</option>
+              <option value="2.25">2.25</option>
+              <option value="2.5">2.5</option>
+              <option value="3.0">3.0 (Passing)</option>
+              <option value="5.0">5.0 (Failed)</option>
+            </select>
+          </div>
+          <div *ngIf="gradeVal.invalid && (gradeVal.dirty || gradeVal.touched)" class="error-text">Grade is required</div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="!f.valid || isLoading">
+          <span *ngIf="isLoading" class="spinner"></span>
+          {{ isEditing ? 'Update Grade' : 'Upload Grade' }}
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="filters-card premium-card animate-fade-in">
+    <div class="filters-header">
+      <h3><span>🔍</span> Filters & Search</h3>
+      <div class="header-actions-group">
+        <button (click)="exportCSV()" class="btn btn-sm btn-primary">Export CSV</button>
+        <button (click)="resetFilters()" class="text-btn">Reset Filters</button>
+      </div>
+    </div>
     <div class="filters-grid">
       <div class="filter-group">
         <label>Search Student</label>
-        <input type="text" [(ngModel)]="filterStudent" (input)="applyFilters()" placeholder="Student name...">
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <input type="text" [(ngModel)]="filterStudent" (input)="applyFilters()" placeholder="Student name...">
+        </div>
       </div>
       <div class="filter-group">
         <label>Search Subject</label>
-        <input type="text" [(ngModel)]="filterSubject" (input)="applyFilters()" placeholder="Subject name...">
+        <div class="input-wrapper">
+          <span class="input-icon">📚</span>
+          <input type="text" [(ngModel)]="filterSubject" (input)="applyFilters()" placeholder="Subject name...">
+        </div>
       </div>
-      <div class="filter-group">
+      <div class="filter-group date-filter">
         <label>Date</label>
         <div class="input-wrapper">
-          <span class="left-icon">📅</span>
+          <span class="input-icon">📅</span>
           <input type="date" [(ngModel)]="filterDate" (change)="applyFilters()">
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<div class="table-card animate-fade-in">
-  <div class="card-header">
-    <div class="header-left">
-      <h3>Academic Records</h3>
-      <span class="badge">{{ filteredGrades.length }} Records</span>
+  <div class="table-card premium-card animate-fade-in">
+    <div class="card-header-premium">
+      <div class="header-left">
+        <h3>Academic Records</h3>
+        <span class="unread-tag" style="margin-top: 0; margin-left: 1rem;">{{ filteredGrades.length }} Records</span>
+      </div>
     </div>
-  </div>
-  
-  <div class="table-responsive">
-    <table class="modern-table">
-      <thead>
-        <tr>
-          <th>Student</th>
-          <th>Subject</th>
-          <th>Grade</th>
-          <th>Date Recorded</th>
-          <th class="text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let g of filteredGrades">
-          <td>
-            <div class="user-cell">
-              <div class="user-avatar">{{ g.student_name ? g.student_name.substring(0, 2).toUpperCase() : 'ST' }}</div>
-              <div class="user-info">
-                <span class="user-name">{{ g.student_name }}</span>
+    
+    <div class="table-responsive">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Subject</th>
+            <th>Grade</th>
+            <th>Date Recorded</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let g of filteredGrades">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar">{{ g.student_name ? g.student_name.substring(0, 2).toUpperCase() : 'ST' }}</div>
+                <div class="user-info">
+                  <span class="user-name">{{ g.student_name }}</span>
+                </div>
               </div>
-            </div>
-          </td>
-          <td>{{ g.subject }}</td>
-          <td>
-            <span class="grade-badge" [class.excellent]="+g.grade <= 1.5" [class.failed]="+g.grade >= 5.0">
-              {{ g.grade }}
-            </span>
-          </td>
-          <td>{{ g.created_at | date:'mediumDate' }}</td>
-          <td class="text-right">
-            <div class="action-group">
-              <button (click)="editGrade(g)" class="btn-icon edit" title="Edit">✏️</button>
-              <button (click)="deleteGrade(g.id)" class="btn-icon delete" title="Delete">🗑️</button>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="filteredGrades.length === 0">
-          <td colspan="5">
-            <div class="empty-state">
-              <span class="icon">📊</span>
-              <p>No matching grade records found.</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td>{{ g.subject }}</td>
+            <td>
+              <span class="grade-badge" [class.excellent]="+g.grade <= 1.5" [class.failed]="+g.grade >= 5.0">
+                {{ g.grade }}
+              </span>
+            </td>
+            <td>{{ g.created_at | date:'mediumDate' }}</td>
+            <td class="text-right">
+              <div class="action-group">
+                <button (click)="editGrade(g)" class="btn-icon edit" title="Edit">✏️</button>
+                <button (click)="deleteGrade(g.id)" class="btn-icon delete" title="Delete">🗑️</button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="filteredGrades.length === 0">
+            <td colspan="5">
+              <div class="empty-state">
+                <span class="icon">📊</span>
+                <p>No matching grade records found.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

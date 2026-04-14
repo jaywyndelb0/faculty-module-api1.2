@@ -51,16 +51,12 @@ import { RouterModule, Router } from '@angular/router';
         </div>
 
         <div class="nav-section">
-          <span class="section-label">Settings & Reports</span>
+          <span class="section-label">Account</span>
           <nav class="nav-list">
-            <a href="#" class="nav-item">
-              <span class="nav-icon">⚙️</span>
-              <span class="nav-text">Settings</span>
-            </a>
-            <a href="#" class="nav-item">
-              <span class="nav-icon">📄</span>
-              <span class="nav-text">Reports</span>
-            </a>
+            <button (click)="logout()" class="nav-item logout-nav-item">
+              <span class="nav-icon">🚪</span>
+              <span class="nav-text">Logout</span>
+            </button>
           </nav>
         </div>
       </div>
@@ -70,11 +66,8 @@ import { RouterModule, Router } from '@angular/router';
           <div class="user-avatar">AD</div>
           <div class="user-details">
             <span class="user-name">Admin User</span>
-            <span class="user-status">Online</span>
+            <span class="user-role">Super Admin</span>
           </div>
-          <button (click)="logout()" class="logout-btn" title="Logout">
-            <span>🚪</span>
-          </button>
         </div>
       </div>
     </div>
@@ -174,6 +167,11 @@ import { RouterModule, Router } from '@angular/router';
       font-size: 0.875rem;
       font-weight: 600;
       position: relative;
+      background: none;
+      border: none;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -185,6 +183,20 @@ import { RouterModule, Router } from '@angular/router';
     .nav-item.active {
       background: var(--primary-surface);
       color: var(--primary);
+    }
+
+    .logout-nav-item {
+      color: var(--danger);
+      font-weight: 700;
+      margin-top: 0.5rem;
+      border: 1px solid transparent;
+    }
+
+    .logout-nav-item:hover {
+      background: var(--danger-surface);
+      color: var(--danger-dark, #dc2626);
+      border-color: rgba(220, 38, 38, 0.1);
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
     }
 
     .nav-icon {
@@ -258,36 +270,10 @@ import { RouterModule, Router } from '@angular/router';
       text-overflow: ellipsis;
     }
 
-    .user-status {
+    .user-role {
       font-size: 0.65rem;
-      color: var(--success);
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .user-status::before {
-      content: '';
-      width: 6px;
-      height: 6px;
-      background: var(--success);
-      border-radius: 50%;
-    }
-
-    .logout-btn {
-      background: none;
-      border: none;
-      padding: 6px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
       color: var(--text-muted);
-      transition: all 0.2s;
-    }
-
-    .logout-btn:hover {
-      background: var(--danger-surface);
-      color: var(--danger);
+      font-weight: 600;
     }
   `]
 })
@@ -295,7 +281,9 @@ export class SidebarComponent {
   constructor(private router: Router) {}
 
   logout() {
-    localStorage.removeItem('token');
-    this.router.navigate(['/login']);
+    if (confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('token');
+      this.router.navigate(['/login']);
+    }
   }
 }

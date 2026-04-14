@@ -79,11 +79,11 @@
           <input type="text" [(ngModel)]="filterText" (input)="applyFilters()" placeholder="Type to search faculty...">
         </div>
       </div>
-      <div class="filter-group">
+      <div class="filter-group department-filter">
         <label>Department</label>
         <div class="input-wrapper">
           <span class="input-icon">🏢</span>
-          <select [(ngModel)]="filterDept" (change)="applyFilters()">
+          <select [(ngModel)]="filterDept" (change)="applyFilters()" class="modern-select">
             <option value="">All Departments</option>
             <option value="Computer Science">Computer Science</option>
             <option value="Mathematics">Mathematics</option>

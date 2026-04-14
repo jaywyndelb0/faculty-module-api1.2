@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { NotificationService, Notification } from '../../../../services/notification.service';
+import { NotificationService, Notification } from '../../../services/notification.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -15,11 +15,6 @@ import { Subscription } from 'rxjs';
           <button class="mobile-toggle">
             <span>☰</span>
           </button>
-          <div class="search-container">
-            <span class="search-icon">🔍</span>
-            <input type="text" placeholder="Search students, faculty, or reports...">
-            <span class="search-shortcut">⌘K</span>
-          </div>
         </div>
 
         <div class="header-right">
@@ -119,56 +114,6 @@ import { Subscription } from 'rxjs';
       font-size: 1.5rem;
       color: var(--text-muted);
       cursor: pointer;
-    }
-
-    .search-container {
-      position: relative;
-      width: 100%;
-      max-width: 440px;
-      transition: all 0.3s ease;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-placeholder);
-      font-size: 0.9rem;
-    }
-
-    .search-container input {
-      width: 100%;
-      height: 44px;
-      background: var(--bg-main);
-      border: 1px solid transparent;
-      border-radius: var(--radius-md);
-      padding: 0 3.5rem 0 2.75rem;
-      font-size: 0.875rem;
-      color: var(--text-main);
-      transition: all 0.2s ease;
-    }
-
-    .search-container input:focus {
-      background: white;
-      border-color: var(--primary-light);
-      box-shadow: 0 0 0 4px var(--primary-surface);
-      outline: none;
-    }
-
-    .search-shortcut {
-      position: absolute;
-      right: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: white;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 4px;
-      pointer-events: none;
     }
 
     /* Right Section */
@@ -440,7 +385,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.sub = this.notifService.notifications$.subscribe(notifs => {
+    this.sub = this.notifService.notifications$.subscribe((notifs: Notification[]) => {
       this.notifications = notifs;
       this.unreadCount = this.notifService.getUnreadCount();
     });
