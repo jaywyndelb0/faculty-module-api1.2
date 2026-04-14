@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { 
   Faculty, Student, Section, Subject, Grade, Attendance, ApiResponse 
 } from '../models/api.models';
@@ -9,7 +10,7 @@ import {
   providedIn: 'root',
 })
 export class ApiService {
-  private apiUrl = 'https://faculty-module-api12-production.up.railway.app/api';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 

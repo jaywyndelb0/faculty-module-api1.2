@@ -256,4 +256,3 @@ export class AttendanceComponent implements OnInit, OnDestroy {
     this.toast.info('Attendance exported as CSV');
   }
 }
-}

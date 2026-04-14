@@ -9,12 +9,14 @@ export interface Faculty {
   name: string;
   email: string;
   department: string;
+  created_at?: string;
 }
 
 export interface Student {
   id: number;
   name: string;
   section_id: number;
+  section_name?: string;
 }
 
 export interface Section {
@@ -26,6 +28,7 @@ export interface Section {
 export interface Subject {
   id: number;
   subject_name: string;
+  name?: string; // For template compatibility
   code: string;
 }
 
