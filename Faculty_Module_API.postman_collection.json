@@ -64,6 +64,62 @@
 					"response": []
 				},
 				{
+					"name": "Faculty Register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Faculty Member\",\n    \"email\": \"faculty@school.edu\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/faculty/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"faculty",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Faculty Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"faculty@school.edu\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/faculty/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"faculty",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Profile",
 					"request": {
 						"method": "GET",
@@ -147,7 +203,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"New Faculty\",\n    \"email\": \"newfaculty@school.edu\",\n    \"department\": \"Engineering\"\n}",
+							"raw": "{\n    \"name\": \"New Faculty\",\n    \"email\": \"newfaculty@school.edu\",\n    \"department\": \"Engineering\",\n    \"subject_id\": 1\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -193,7 +249,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Updated Name\",\n    \"department\": \"IT Department\"\n}",
+							"raw": "{\n    \"name\": \"Updated Name\",\n    \"department\": \"IT Department\",\n    \"subject_id\": 2\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -329,6 +385,72 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Student by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/students/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Student",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Student Name\",\n    \"section_id\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/students/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Student",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/students/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"students",
+								"1"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -381,9 +503,56 @@
 					"response": []
 				},
 				{
+					"name": "Update Grade",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"Mobile Development\",\n    \"grade\": \"1.50\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/grades/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"grades",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Student Grades",
 					"request": {
 						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/grades/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"grades",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Grade",
+					"request": {
+						"method": "DELETE",
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/api/grades/1",
@@ -432,9 +601,56 @@
 					"response": []
 				},
 				{
+					"name": "Update Attendance",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date\": \"2026-03-07\",\n    \"status\": \"absent\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/attendance/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"attendance",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Student Attendance",
 					"request": {
 						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/attendance/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"attendance",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Attendance",
+					"request": {
+						"method": "DELETE",
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/api/attendance/1",
@@ -474,6 +690,118 @@
 					"response": []
 				},
 				{
+					"name": "Create Section",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"BSIT-4A\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/sections",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Section by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/sections/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Section",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"BSIT-4B\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/sections/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Section",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/sections/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Sections from Registrar",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/sections/sync",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"sync"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Section Classlist",
 					"request": {
 						"method": "GET",
@@ -488,6 +816,232 @@
 								"sections",
 								"1",
 								"classlist"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Section Faculty",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/sections/1/faculty",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"1",
+								"faculty"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Faculty to Section",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"faculty_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/sections/1/assign-faculty",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"1",
+								"assign-faculty"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Faculty from Section",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"faculty_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/sections/1/remove-faculty",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"sections",
+								"1",
+								"remove-faculty"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Subjects",
+			"item": [
+				{
+					"name": "List All Subjects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/subjects",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"subjects"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Subjects from Registrar",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/subjects/sync",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"subjects",
+								"sync"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "API Test",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"test"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registrar Integration (External)",
+			"item": [
+				{
+					"name": "List All Sections (Registrar API)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://registrarmodule1-production.up.railway.app/api/sections",
+							"protocol": "https",
+							"host": [
+								"registrarmodule1-production",
+								"up",
+								"railway",
+								"app"
+							],
+							"path": [
+								"api",
+								"sections"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List All Subjects (Registrar API)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://registrarmodule1-production.up.railway.app/api/subjects",
+							"protocol": "https",
+							"host": [
+								"registrarmodule1-production",
+								"up",
+								"railway",
+								"app"
+							],
+							"path": [
+								"api",
+								"subjects"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admission Module Integration (External)",
+			"item": [
+				{
+					"name": "List External Students (Admission API)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "API-Key",
+								"value": "{{admission_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://admission-api-production.up.railway.app/api/external/students",
+							"protocol": "https",
+							"host": [
+								"admission-api-production",
+								"up",
+								"railway",
+								"app"
+							],
+							"path": [
+								"api",
+								"external",
+								"students"
 							]
 						}
 					},
@@ -540,6 +1094,11 @@
 		{
 			"key": "auth_token",
 			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admission_api_key",
+			"value": "8JQ6yEQac1lO0UJebh1ovjyH6QJlapuCNS1yjFmCtudxVfQX7WhnbByStPghID9k",
 			"type": "string"
 		}
 	]

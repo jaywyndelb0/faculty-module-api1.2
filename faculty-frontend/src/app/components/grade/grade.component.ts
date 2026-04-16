@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -7,7 +7,7 @@ import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
 import { NotificationService } from '../../services/notification.service';
 import { ActivityService } from '../../services/activity.service';
-import { Subscription, combineLatest } from 'rxjs';
+import { Subscription, combineLatest, finalize } from 'rxjs';
 import { Grade, Student, Subject } from '../../models/api.models';
 
 @Component({
@@ -40,7 +40,8 @@ export class GradeComponent implements OnInit, OnDestroy {
     private dataService: DataService,
     private toast: ToastService,
     private notifService: NotificationService,
-    private activityService: ActivityService
+    private activityService: ActivityService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -93,47 +94,55 @@ export class GradeComponent implements OnInit, OnDestroy {
       grade: this.newGrade.grade
     };
 
-    if (this.isEditing && this.editingGradeId) {
-      this.apiService.updateGrade(this.editingGradeId, gradeData).subscribe({
-        next: () => {
-          this.toast.success('Grade updated');
-          const student = this.students.find(s => s.id.toString() === this.newGrade.student_id);
-          this.activityService.addActivity('grade', 'Updated Grade', `for ${student?.name || 'Student'}`);
-          this.dataService.refreshGrades();
-          this.resetForm();
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.toast.error('Failed to update grade');
-          this.isLoading = false;
-        }
-      });
-    } else {
-      this.apiService.uploadGrade(gradeData).subscribe({
-        next: () => {
-          this.toast.success('Grade uploaded');
-          
-          // Trigger Notification
-          const student = this.students.find(s => s.id.toString() === this.newGrade.student_id);
+    const action = this.isEditing && this.editingGradeId 
+      ? this.apiService.updateGrade(this.editingGradeId, gradeData)
+      : this.apiService.uploadGrade(gradeData);
+
+    action.pipe(
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (res: any) => {
+        this.toast.success(res.message || (this.isEditing ? 'Grade updated' : 'Grade uploaded'));
+        
+        const student = this.students.find(s => s.id.toString() === this.newGrade.student_id);
+        const activityAction = this.isEditing ? 'Updated Grade' : 'Uploaded Grade';
+        const activityDetail = this.isEditing ? `for ${student?.name || 'Student'}` : `${this.newGrade.grade} for ${student?.name || 'Student'}`;
+        
+        if (!this.isEditing) {
+          // Trigger Notification only on new upload
           this.notifService.addNotification({
             icon: '📝',
             title: 'New Grade Uploaded',
             message: `New grade <strong>${this.newGrade.grade}</strong> uploaded for <strong>${student ? student.name : 'Unknown Student'}</strong> in <strong>${this.newGrade.subject}</strong>`,
             type: 'grade'
           });
-
-          this.activityService.addActivity('grade', 'Uploaded Grade', `${this.newGrade.grade} for ${student?.name || 'Student'}`);
-
-          this.dataService.refreshGrades();
-          this.resetForm();
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.toast.error('Failed to upload grade');
-          this.isLoading = false;
         }
-      });
-    }
+
+        this.activityService.addActivity('grade', activityAction, activityDetail);
+
+        if (res.data) {
+          if (this.isEditing && this.editingGradeId) {
+            const index = this.grades.findIndex(g => g.id === this.editingGradeId);
+            if (index !== -1) {
+              this.grades[index] = res.data;
+            }
+          } else {
+            this.grades.unshift(res.data);
+          }
+        }
+
+        this.applyFilters();
+        this.resetForm();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Grade save failed', err);
+        this.toast.error(err.error?.message || `Failed to ${this.isEditing ? 'update' : 'upload'} grade`);
+      }
+    });
   }
 
   editGrade(grade: Grade) {
@@ -151,16 +160,17 @@ export class GradeComponent implements OnInit, OnDestroy {
     const gradeToDelete = this.grades.find(g => g.id === id);
     if (confirm('Are you sure you want to delete this grade record?')) {
       this.isLoading = true;
-      this.apiService.deleteGrade(id).subscribe({
+      this.apiService.deleteGrade(id).pipe(
+        finalize(() => this.isLoading = false)
+      ).subscribe({
         next: () => {
           this.toast.success('Grade deleted');
           this.activityService.addActivity('grade', 'Deleted Grade', `for ${gradeToDelete?.student_name || 'Student'}`);
-          this.dataService.refreshGrades();
-          this.isLoading = false;
+          this.grades = this.grades.filter(g => g.id !== id);
+          this.applyFilters();
         },
         error: (err) => {
           this.toast.error('Failed to delete grade');
-          this.isLoading = false;
         }
       });
     }

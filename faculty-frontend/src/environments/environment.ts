@@ -1,4 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://127.0.0.1:8000/api'
+  apiUrl: 'http://localhost:8000/api',
+  admissionApiKey: '8JQ6yEQac1lO0UJebh1ovjyH6QJlapuCNS1yjFmCtudxVfQX7WhnbByStPghID9k'
 };

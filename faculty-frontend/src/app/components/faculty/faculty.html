@@ -5,7 +5,7 @@
       <p>Manage and monitor your school's teaching staff.</p>
     </div>
     <div class="header-actions">
-      <button (click)="isAdding = !isAdding; isEditing = false; resetForm()" class="btn btn-add-faculty">
+      <button (click)="toggleAddForm()" class="btn btn-add-faculty">
         <span class="icon">{{ isAdding ? '✕' : '＋' }}</span>
         {{ isAdding ? 'Cancel' : 'Add Faculty' }}
       </button>
@@ -55,11 +55,23 @@
           </div>
           <div *ngIf="dept.invalid && (dept.dirty || dept.touched)" class="error-text">Department is required</div>
         </div>
+        <div class="form-group">
+          <label>Assigned Subject</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📚</span>
+            <select name="subject_id" [(ngModel)]="newFaculty.subject_id" class="modern-select">
+              <option [ngValue]="null">No Subject Assigned</option>
+              <option *ngFor="let sub of subjects" [ngValue]="sub.id">
+                {{ sub.name }} {{ sub.code ? '(' + sub.code + ')' : '' }}
+              </option>
+            </select>
+            <span *ngIf="isLoadingSubjects" class="loading-inline">Loading subjects...</span>
+          </div>
+        </div>
       </div>
       <div class="form-actions" style="margin-top: 1rem; display: flex; justify-content: flex-end;">
-        <button type="submit" class="btn btn-primary" [disabled]="!f.valid || isLoading" style="min-width: 160px;">
-          <span *ngIf="isLoading" class="spinner"></span>
-          {{ isLoading ? 'Processing...' : (isEditing ? 'Update Faculty' : 'Save Faculty Member') }}
+        <button type="submit" class="btn btn-primary" style="min-width: 160px;">
+          {{ isEditing ? 'Update Faculty Member' : 'Save Faculty Member' }}
         </button>
       </div>
     </form>
@@ -69,7 +81,10 @@
   <div class="filters-card premium-card">
     <div class="filters-header">
       <h3><span>🔍</span> Filters & Search</h3>
-      <button (click)="resetFilters()" class="text-btn">Reset Filters</button>
+      <div class="header-actions">
+        <button (click)="refreshAll()" class="text-btn" style="margin-right: 1rem; color: var(--primary);">🔄 Refresh & Sync</button>
+        <button (click)="resetFilters()" class="text-btn">Reset Filters</button>
+      </div>
     </div>
     <div class="filters-grid">
       <div class="filter-group">
@@ -110,6 +125,7 @@
           <tr>
             <th>Faculty Member</th>
             <th>Department</th>
+            <th>Assigned Subject</th>
             <th>Joined Date</th>
             <th class="text-right">Actions</th>
           </tr>
@@ -132,6 +148,11 @@
                     [class.dept-physics]="f.department === 'Physics'"
                     [class.dept-arts]="f.department === 'Arts'">
                 {{ f.department }}
+              </span>
+            </td>
+            <td>
+              <span class="dept-badge" style="background: #f1f5f9; color: #475569; border-color: #e2e8f0;">
+                {{ getSubjectName(f.subject_id) }}
               </span>
             </td>
             <td>{{ (f.created_at | date:'mediumDate') || 'N/A' }}</td>

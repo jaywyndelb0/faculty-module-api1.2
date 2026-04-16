@@ -36,6 +36,7 @@ class FacultyController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|email|max:100',
             'department' => 'required|string|max:100',
+            'subject_id' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
@@ -46,14 +47,18 @@ class FacultyController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'department' => $request->department,
+            'subject_id' => $request->subject_id,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
+        $faculty = DB::table('faculty')->where('id', $id)->first();
+
         return response()->json([
             'status' => 201,
+            'success' => true,
             'message' => 'Faculty created successfully',
-            'data' => ['id' => $id, 'name' => $request->name]
+            'data' => $faculty
         ], 201);
     }
 
@@ -63,27 +68,27 @@ class FacultyController extends Controller
             'name' => 'sometimes|required|string|max:100',
             'email' => 'sometimes|required|email|max:100',
             'department' => 'sometimes|required|string|max:100',
+            'subject_id' => 'nullable|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 400);
         }
 
+        $data = $request->only(['name', 'email', 'department', 'subject_id']);
+        $data['updated_at'] = now();
+
         $affected = DB::table('faculty')
             ->where('id', $id)
-            ->update(array_merge($request->only(['name', 'email', 'department']), ['updated_at' => now()]));
+            ->update($data);
 
-        if ($affected === 0) {
-            $exists = DB::table('faculty')->where('id', $id)->exists();
-            if (!$exists) {
-                return response()->json(['status' => 404, 'message' => 'Faculty record not found'], 404);
-            }
-            return response()->json(['status' => 200, 'message' => 'No changes made to faculty record'], 200);
-        }
+        $faculty = DB::table('faculty')->where('id', $id)->first();
 
         return response()->json([
             'status' => 200,
-            'message' => 'Faculty record updated successfully'
+            'success' => true,
+            'message' => 'Faculty record updated successfully',
+            'data' => $faculty
         ], 200);
     }
 
@@ -111,7 +116,7 @@ class FacultyController extends Controller
 
         $schedule = DB::table('sections')
             ->where('faculty_id', $id)
-            ->select('id as section_id', 'section_name', 'created_at')
+            ->select('id as section_id', 'section_name', 'schedule', 'room', 'created_at')
             ->get();
 
         return response()->json([
@@ -171,7 +176,7 @@ class FacultyController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'faculty_id' => 'required|integer|exists:faculty,id',
-            'section_id' => 'required|integer|exists:sections,id',
+            'section_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -262,10 +267,17 @@ class FacultyController extends Controller
             'updated_at' => now(),
         ]);
 
+        $grade = DB::table('grades')
+            ->join('students', 'grades.student_id', '=', 'students.id')
+            ->where('grades.id', $id)
+            ->select('grades.id', 'students.name as student_name', 'grades.subject', 'grades.grade', 'grades.created_at')
+            ->first();
+
         return response()->json([
             'status' => 201,
+            'success' => true,
             'message' => 'Grade uploaded successfully',
-            'data' => ['id' => $id]
+            'data' => $grade
         ], 201);
     }
 
@@ -284,17 +296,16 @@ class FacultyController extends Controller
             ->where('id', $id)
             ->update(array_merge($request->only(['subject', 'grade']), ['updated_at' => now()]));
 
-        if ($affected === 0) {
-            $exists = DB::table('grades')->where('id', $id)->exists();
-            if (!$exists) {
-                return response()->json(['status' => 404, 'message' => 'Grade record not found'], 404);
-            }
-            return response()->json(['status' => 200, 'message' => 'No changes made to grade record'], 200);
-        }
+        $grade = DB::table('grades')
+            ->join('students', 'grades.student_id', '=', 'students.id')
+            ->where('grades.id', $id)
+            ->select('grades.id', 'students.name as student_name', 'grades.subject', 'grades.grade', 'grades.created_at')
+            ->first();
 
         return response()->json([
             'status' => 200,
-            'message' => 'Grade record updated successfully'
+            'message' => 'Grade record updated successfully',
+            'data' => $grade
         ], 200);
     }
 
@@ -376,10 +387,13 @@ class FacultyController extends Controller
             'updated_at' => now(),
         ]);
 
+        $attendance = DB::table('attendance')->where('id', $id)->first();
+
         return response()->json([
             'status' => 201,
+            'success' => true,
             'message' => 'Attendance recorded successfully',
-            'data' => ['id' => $id]
+            'data' => $attendance
         ], 201);
     }
 
@@ -398,17 +412,12 @@ class FacultyController extends Controller
             ->where('id', $id)
             ->update(array_merge($request->only(['date', 'status']), ['updated_at' => now()]));
 
-        if ($affected === 0) {
-            $exists = DB::table('attendance')->where('id', $id)->exists();
-            if (!$exists) {
-                return response()->json(['status' => 404, 'message' => 'Attendance record not found'], 404);
-            }
-            return response()->json(['status' => 200, 'message' => 'No changes made to attendance record'], 200);
-        }
+        $attendance = DB::table('attendance')->where('id', $id)->first();
 
         return response()->json([
             'status' => 200,
-            'message' => 'Attendance record updated successfully'
+            'message' => 'Attendance record updated successfully',
+            'data' => $attendance
         ], 200);
     }
 
@@ -443,6 +452,39 @@ class FacultyController extends Controller
             'status' => 200,
             'message' => 'Attendance retrieved successfully',
             'data' => $attendance
+        ], 200);
+    }
+
+    public function syncSubjects(Request $request)
+    {
+        $subjects = $request->input('subjects', []);
+        $syncedIds = [];
+        $syncedCount = 0;
+
+        foreach ($subjects as $subjectData) {
+            $externalId = $subjectData['id'];
+            $syncedIds[] = $externalId;
+            
+            DB::table('subjects')->updateOrInsert(
+                ['id' => $externalId],
+                [
+                    'code' => $subjectData['subject_code'] ?? $subjectData['code'] ?? 'N/A',
+                    'name' => $subjectData['subject_name'] ?? $subjectData['name'] ?? 'Unknown Subject',
+                    'updated_at' => now(),
+                    'created_at' => DB::raw('IFNULL(created_at, "' . now() . '")')
+                ]
+            );
+            $syncedCount++;
+        }
+
+        // Remove old/test subjects not present in the Registrar sync list
+        if (!empty($syncedIds)) {
+            DB::table('subjects')->whereNotIn('id', $syncedIds)->delete();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => "Successfully synced {$syncedCount} subjects from Registrar Module. Local database is now the single source of truth."
         ], 200);
     }
 }

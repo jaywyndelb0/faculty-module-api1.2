@@ -23,6 +23,8 @@ class SectionController extends Controller
         $validator = Validator::make($request->all(), [
             'section_name' => 'required|string|max:100',
             'faculty_id' => 'nullable|integer|exists:faculty,id',
+            'schedule' => 'nullable|string|max:100',
+            'room' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -32,6 +34,8 @@ class SectionController extends Controller
         $id = DB::table('sections')->insertGetId([
             'section_name' => $request->section_name,
             'faculty_id' => $request->faculty_id,
+            'schedule' => $request->schedule,
+            'room' => $request->room,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -39,7 +43,12 @@ class SectionController extends Controller
         return response()->json([
             'status' => 201,
             'message' => 'Section created successfully',
-            'data' => ['id' => $id, 'section_name' => $request->section_name]
+            'data' => [
+                'id' => $id, 
+                'section_name' => $request->section_name,
+                'schedule' => $request->schedule,
+                'room' => $request->room
+            ]
         ], 201);
     }
 
@@ -67,6 +76,8 @@ class SectionController extends Controller
         $validator = Validator::make($request->all(), [
             'section_name' => 'sometimes|required|string|max:100',
             'faculty_id' => 'nullable|integer|exists:faculty,id',
+            'schedule' => 'nullable|string|max:100',
+            'room' => 'nullable|string|max:50',
         ]);
 
         if ($validator->fails()) {
@@ -75,7 +86,7 @@ class SectionController extends Controller
 
         $affected = DB::table('sections')
             ->where('id', $id)
-            ->update(array_merge($request->only(['section_name', 'faculty_id']), ['updated_at' => now()]));
+            ->update(array_merge($request->only(['section_name', 'faculty_id', 'schedule', 'room']), ['updated_at' => now()]));
 
         if ($affected === 0) {
             return response()->json(['status' => 404, 'message' => 'Section not found or no changes made'], 404);
@@ -98,6 +109,40 @@ class SectionController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Section deleted successfully'
+        ], 200);
+    }
+
+    public function syncSections(Request $request)
+    {
+        $sections = $request->input('sections', []);
+        $syncedIds = [];
+        $syncedCount = 0;
+
+        foreach ($sections as $sectionData) {
+            $externalId = $sectionData['id'];
+            $syncedIds[] = $externalId;
+            
+            DB::table('sections')->updateOrInsert(
+                ['id' => $externalId],
+                [
+                    'section_name' => $sectionData['section_name'] ?? $sectionData['name'] ?? 'Unnamed Section',
+                    'schedule' => $sectionData['schedule'] ?? null,
+                    'room' => $sectionData['room'] ?? null,
+                    'updated_at' => now(),
+                    'created_at' => DB::raw('IFNULL(created_at, "' . now() . '")')
+                ]
+            );
+            $syncedCount++;
+        }
+
+        // Remove old/test sections not present in the Registrar sync list
+        if (!empty($syncedIds)) {
+            DB::table('sections')->whereNotIn('id', $syncedIds)->delete();
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => "Successfully synced {$syncedCount} sections from Registrar Module. Local database is now the single source of truth."
         ], 200);
     }
 }

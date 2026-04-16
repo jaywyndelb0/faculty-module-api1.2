@@ -40,10 +40,17 @@ export class DataService {
   }
 
   refreshStudents() {
+    console.log('Refreshing Students Directory...');
     this.apiService.getStudents().pipe(
-      map(res => Array.isArray(res) ? res : res.data),
+      map(res => {
+        const data = Array.isArray(res) ? res : res.data;
+        console.log('Students fetched from local API:', data);
+        return data;
+      }),
       tap(data => this.studentsSubject.next(data))
-    ).subscribe();
+    ).subscribe({
+      error: (err) => console.error('Failed to fetch students:', err)
+    });
   }
 
   refreshGrades() {
@@ -53,18 +60,80 @@ export class DataService {
     ).subscribe();
   }
 
-  refreshSections() {
-    this.apiService.getSections().pipe(
-      map(res => Array.isArray(res) ? res : res.data),
-      tap(data => this.sectionsSubject.next(data))
-    ).subscribe();
+  refreshSections(forceRefresh: boolean = false) {
+    // If not forced and we already have data, just return
+    if (!forceRefresh && this.sectionsSubject.value.length > 0) {
+      // Still refresh from local DB to be sure, but skip the remote sync
+      this.apiService.getSections().subscribe({
+        next: (localRes) => {
+          const localData = Array.isArray(localRes) ? localRes : (localRes.data || []);
+          this.sectionsSubject.next(localData);
+        }
+      });
+      return;
+    }
+
+    // Full sync from Registrar API
+    this.apiService.getRemoteSections().subscribe({
+      next: (res) => {
+        const sections = Array.isArray(res) ? res : (res.data || []);
+        if (sections.length > 0) {
+          this.apiService.syncSections(sections).subscribe({
+            next: () => {
+              this.apiService.getSections().subscribe({
+                next: (localRes) => {
+                  const localData = Array.isArray(localRes) ? localRes : (localRes.data || []);
+                  this.sectionsSubject.next(localData);
+                }
+              });
+            }
+          });
+        }
+      },
+      error: (err) => {
+        this.apiService.getSections().subscribe(localRes => {
+          const localData = Array.isArray(localRes) ? localRes : (localRes.data || []);
+          this.sectionsSubject.next(localData);
+        });
+      }
+    });
   }
 
-  refreshSubjects() {
-    this.apiService.getSubjects().pipe(
-      map(res => res.data),
-      tap(data => this.subjectsSubject.next(data))
-    ).subscribe();
+  refreshSubjects(forceRefresh: boolean = false) {
+    // If not forced and we already have data, just return
+    if (!forceRefresh && this.subjectsSubject.value.length > 0) {
+      this.apiService.getSubjects().subscribe({
+        next: (localRes) => {
+          const localData = Array.isArray(localRes) ? localRes : (localRes.data || []);
+          this.subjectsSubject.next(localData);
+        }
+      });
+      return;
+    }
+
+    this.apiService.getRemoteSubjects().subscribe({
+      next: (res) => {
+        const subjects = Array.isArray(res) ? res : (res.data || []);
+        if (subjects.length > 0) {
+          this.apiService.syncSubjects(subjects).subscribe({
+            next: () => {
+              this.apiService.getSubjects().subscribe({
+                next: (localRes) => {
+                  const localData = Array.isArray(localRes) ? localRes : (localRes.data || []);
+                  this.subjectsSubject.next(localData);
+                }
+              });
+            }
+          });
+        }
+      },
+      error: (err) => {
+        this.apiService.getSubjects().subscribe(localRes => {
+          const localData = Array.isArray(localRes) ? localRes : (localRes.data || []);
+          this.subjectsSubject.next(localData);
+        });
+      }
+    });
   }
 
   // Helper methods to get current snapshot

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { 
@@ -57,9 +57,21 @@ export class ApiService {
     return this.http.delete(`${this.apiUrl}/students/${id}`);
   }
 
-  // Sections
+  // Sections (Integrated from Registrar Module)
+  getRemoteSections(): Observable<any> {
+    return this.http.get<any>('https://registrarmodule1-production.up.railway.app/api/sections');
+  }
+
   getSections(): Observable<Section[] | { data: Section[] }> {
+    return this.getLocalSections();
+  }
+
+  getLocalSections(): Observable<Section[] | { data: Section[] }> {
     return this.http.get<Section[] | { data: Section[] }>(`${this.apiUrl}/sections`);
+  }
+
+  syncSections(sections: any[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/sections/sync`, { sections });
   }
 
   // Grades
@@ -79,8 +91,21 @@ export class ApiService {
     return this.http.delete(`${this.apiUrl}/grades/${id}`);
   }
 
-  getSubjects(): Observable<{ data: Subject[] }> {
-    return this.http.get<{ data: Subject[] }>(`${this.apiUrl}/subjects`);
+  // Registrar Module Integration
+  getRemoteSubjects(): Observable<any> {
+    return this.http.get<any>('https://registrarmodule1-production.up.railway.app/api/subjects');
+  }
+
+  getSubjects(): Observable<any> {
+    return this.getLocalSubjects();
+  }
+
+  getLocalSubjects(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/subjects`);
+  }
+
+  syncSubjects(subjects: any[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/subjects/sync`, { subjects });
   }
 
   // Attendance
@@ -98,5 +123,13 @@ export class ApiService {
 
   getStudentAttendance(studentId: number): Observable<Attendance[] | { data: Attendance[] }> {
     return this.http.get<Attendance[] | { data: Attendance[] }>(`${this.apiUrl}/attendance/${studentId}`);
+  }
+
+  // External Module Integrations
+  getExternalStudents(): Observable<any> {
+    const headers = new HttpHeaders({
+      'API-Key': environment.admissionApiKey
+    });
+    return this.http.get<any>('https://admission-api-production.up.railway.app/api/external/students', { headers });
   }
 }

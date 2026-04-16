@@ -7,7 +7,7 @@ import { DataService } from '../../services/data.service';
 import { ToastService } from '../../services/toast.service';
 import { NotificationService } from '../../services/notification.service';
 import { ActivityService } from '../../services/activity.service';
-import { Subscription } from 'rxjs';
+import { Subscription, finalize } from 'rxjs';
 import { Student, Attendance } from '../../models/api.models';
 
 @Component({
@@ -74,56 +74,54 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isLoading = true;
     const attendanceData = {
       student_id: parseInt(this.attendance.student_id),
       date: this.attendance.date,
       status: this.attendance.status
     };
 
-    if (this.isEditing && this.editingId) {
-      this.apiService.updateAttendance(this.editingId, attendanceData).subscribe({
-        next: () => {
-          this.toast.success('Attendance updated successfully');
-          const student = this.students.find(s => s.id.toString() === this.attendance.student_id);
-          this.activityService.addActivity('attendance', 'Updated Attendance', `for ${student?.name || 'Student'}`);
-          this.loadAttendanceHistory();
-          this.cancelEdit();
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.toast.error(err.error?.message || 'Failed to update attendance');
-          this.isLoading = false;
-        }
-      });
-    } else {
-      this.apiService.recordAttendance(attendanceData).subscribe({
-        next: () => {
-          this.toast.success('Attendance recorded successfully');
-          
-          // Trigger Notification
-          const student = this.students.find(s => s.id.toString() === this.attendance.student_id);
+    const action = this.isEditing && this.editingId 
+      ? this.apiService.updateAttendance(this.editingId, attendanceData)
+      : this.apiService.recordAttendance(attendanceData);
+
+    action.subscribe({
+      next: (res: any) => {
+        this.toast.success(res.message || (this.isEditing ? 'Attendance updated' : 'Attendance recorded'));
+        
+        const student = this.students.find(s => s.id.toString() === this.attendance.student_id);
+        const activityAction = this.isEditing ? 'Updated Attendance' : 'Recorded Attendance';
+        const activityDetail = this.isEditing ? `for ${student?.name || 'Student'}` : `${this.attendance.status} for ${student?.name || 'Student'}`;
+        
+        if (!this.isEditing) {
+          // Trigger Notification only on new record
           this.notifService.addNotification({
             icon: '📅',
             title: 'Attendance Recorded',
             message: `<strong>${this.attendance.status}</strong> recorded for <strong>${student ? student.name : 'Unknown Student'}</strong> on ${this.attendance.date}`,
             type: 'attendance'
           });
-
-          this.activityService.addActivity('attendance', 'Recorded Attendance', `${this.attendance.status} for ${student?.name || 'Student'}`);
-
-          if (this.searchStudentId === this.attendance.student_id) {
-            this.loadAttendanceHistory();
-          }
-          this.resetForm();
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.toast.error(err.error?.message || 'Failed to record attendance');
-          this.isLoading = false;
         }
-      });
-    }
+
+        this.activityService.addActivity('attendance', activityAction, activityDetail);
+
+        if (res.data && this.searchStudentId === this.attendance.student_id) {
+          if (this.isEditing && this.editingId) {
+            const index = this.attendanceHistory.findIndex(h => h.id === this.editingId);
+            if (index !== -1) {
+              this.attendanceHistory[index] = res.data;
+            }
+          } else if (!this.isEditing) {
+            this.attendanceHistory.unshift(res.data);
+          }
+          this.applyFilters();
+        }
+        this.cancelEdit();
+      },
+      error: (err) => {
+        console.error('Attendance save failed', err);
+        this.toast.error(err.error?.message || `Failed to ${this.isEditing ? 'update' : 'record'} attendance`);
+      }
+    });
   }
 
   onSearchStudentChange() {
@@ -142,17 +140,14 @@ export class AttendanceComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isLoading = true;
     this.apiService.getStudentAttendance(+this.searchStudentId).subscribe({
       next: (res) => {
         this.attendanceHistory = Array.isArray(res) ? res : res.data;
         this.applyFilters();
         this.calculateSummary();
-        this.isLoading = false;
       },
       error: (err) => {
         this.toast.error('Failed to load attendance history');
-        this.isLoading = false;
       }
     });
   }
@@ -206,17 +201,15 @@ export class AttendanceComponent implements OnInit, OnDestroy {
   deleteRecord(id: number) {
     const recordToDelete = this.attendanceHistory.find(h => h.id === id);
     if (confirm('Are you sure you want to delete this attendance record?')) {
-      this.isLoading = true;
       this.apiService.deleteAttendance(id).subscribe({
         next: () => {
           this.toast.success('Attendance record deleted');
           this.activityService.addActivity('attendance', 'Deleted Attendance', `for Student ID ${recordToDelete?.student_id || id}`);
-          this.loadAttendanceHistory();
-          this.isLoading = false;
+          this.attendanceHistory = this.attendanceHistory.filter(h => h.id !== id);
+          this.applyFilters();
         },
         error: () => {
           this.toast.error('Failed to delete attendance record');
-          this.isLoading = false;
         }
       });
     }

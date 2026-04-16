@@ -8,7 +8,7 @@ use App\Http\Controllers\SectionController;
 use App\Http\Controllers\AuthController;
 
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::get('test', function () {
     return response()->json(['message' => 'API is working']);
 });
@@ -18,12 +18,13 @@ Route::prefix('faculty')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
+Route::get('/faculty', [FacultyController::class, 'index']);
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/users', [AuthController::class, 'index']);
 
-    Route::get('/faculty', [FacultyController::class, 'index']);
     Route::post('/faculty', [FacultyController::class, 'store']);
     Route::get('/faculty/{id}', [FacultyController::class, 'show']);
     Route::put('/faculty/{id}', [FacultyController::class, 'update']);
@@ -43,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/grades/{studentId}', [FacultyController::class, 'getStudentGrades']);
 
     Route::get('/subjects', [FacultyController::class, 'getSubjects']);
+    Route::post('/subjects/sync', [FacultyController::class, 'syncSubjects']);
 
     Route::post('/attendance', [FacultyController::class, 'recordAttendance']);
     Route::put('/attendance/{id}', [FacultyController::class, 'updateAttendance']);
@@ -50,5 +52,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/attendance/{studentId}', [FacultyController::class, 'getAttendance']);
 
     Route::apiResource('students', StudentController::class);
+    Route::post('/sections/sync', [SectionController::class, 'syncSections']);
     Route::apiResource('sections', SectionController::class);
 });

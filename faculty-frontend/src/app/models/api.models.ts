@@ -9,20 +9,33 @@ export interface Faculty {
   name: string;
   email: string;
   department: string;
+  subject_id?: number | null;
   created_at?: string;
 }
 
 export interface Student {
   id: number;
   name: string;
-  section_id: number;
+  email?: string;
+  section_id: number | null;
   section_name?: string;
+  source?: string;
+  external_id?: string;
 }
 
 export interface Section {
   id: number;
   section_name: string;
-  faculty_id: number;
+  name?: string; // For template compatibility
+  subject_id: number;
+  instructor_id: number;
+  capacity: number;
+  schedule: string;
+  room: string;
+  status: string;
+  subject?: Subject;
+  instructor?: Faculty;
+  created_at?: string;
 }
 
 export interface Subject {

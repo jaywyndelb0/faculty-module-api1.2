@@ -5,7 +5,7 @@
       <p>Manage student records and class assignments.</p>
     </div>
     <div class="header-actions">
-      <button (click)="isAdding = !isAdding; isEditing = false; cancelEdit()" class="btn btn-add-student">
+      <button (click)="toggleAddForm()" class="btn btn-add-student">
         <span class="icon">{{ isAdding ? '✕' : '＋' }}</span>
         {{ isAdding ? 'Cancel' : 'Add Student' }}
       </button>
@@ -35,7 +35,9 @@
             <span class="input-icon">🏢</span>
             <select name="section_id" [(ngModel)]="newStudent.section_id" required #section="ngModel" class="modern-select">
               <option value="" disabled>Select Section</option>
-              <option *ngFor="let s of sections" [value]="s.id">{{ s.section_name }}</option>
+              <option *ngFor="let s of sections" [value]="s.id">
+                {{ s.section_name }} ({{ s.schedule || 'Schedule TBD' }})
+              </option>
             </select>
           </div>
           <div *ngIf="section.invalid && (section.dirty || section.touched)" class="error-text">Section is required</div>
@@ -53,7 +55,10 @@
   <div class="filters-card premium-card">
     <div class="filters-header">
       <h3><span>🔍</span> Filters & Search</h3>
-      <button (click)="resetFilters()" class="text-btn">Reset Filters</button>
+      <div class="header-actions">
+        <button (click)="refreshAll()" class="text-btn" style="margin-right: 1rem; color: var(--primary);">🔄 Refresh Data</button>
+        <button (click)="resetFilters()" class="text-btn">Reset Filters</button>
+      </div>
     </div>
     <div class="filters-grid">
       <div class="filter-group">
@@ -68,11 +73,77 @@
         <div class="input-wrapper">
           <span class="input-icon">🏢</span>
           <select [(ngModel)]="filterSection" (change)="applyFilters()" class="modern-select">
-            <option value="">All Sections</option>
-            <option *ngFor="let s of sections" [value]="s.id">{{ s.section_name }}</option>
-          </select>
+              <option value="">All Sections</option>
+              <option *ngFor="let s of sections" [value]="s.id">{{ s.section_name }} ({{ s.schedule || 'Schedule TBD' }})</option>
+            </select>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- External Students Section -->
+  <div class="table-card premium-card animate-fade-in" style="margin-bottom: 2.5rem;">
+    <div class="card-header-premium">
+      <div class="header-left">
+        <h3>External Students (Admission Module)</h3>
+        <span class="unread-tag" style="margin-top: 0; margin-left: 1rem; background: #e0f2fe; color: #0369a1;">
+          {{ externalStudents.length }} Synced
+        </span>
+      </div>
+      <button (click)="loadExternalStudents()" class="text-btn" [disabled]="isLoadingExternal">
+        {{ isLoadingExternal ? 'Syncing...' : '🔄 Refresh Sync' }}
+      </button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="modern-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Source</th>
+            <th class="text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of externalStudents">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar" style="background: #0ea5e9;">{{ s.name.substring(0, 2).toUpperCase() }}</div>
+                <div class="user-info">
+                  <span class="user-name">{{ s.name }}</span>
+                  <span class="user-email">EXT-{{ s.external_id }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ s.email || 'N/A' }}</td>
+            <td>
+              <span class="dept-badge" style="background: #f0f9ff; color: #0369a1; border-color: #bae6fd;">
+                {{ s.source }}
+              </span>
+            </td>
+            <td class="text-right">
+              <span class="status-pill" style="background: #f0fdf4; color: #15803d;">Auto-Synced</span>
+            </td>
+          </tr>
+          <tr *ngIf="externalStudents.length === 0 && !isLoadingExternal">
+            <td colspan="4">
+              <div class="empty-state">
+                <span class="icon">📡</span>
+                <p>No external students found. Try refreshing the sync.</p>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="isLoadingExternal">
+            <td colspan="4">
+              <div class="empty-state">
+                <div class="spinner" style="margin: 0 auto 1rem;"></div>
+                <p>Syncing with Admission API...</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -101,15 +172,18 @@
                 <div class="user-avatar">{{ s.name.substring(0, 2).toUpperCase() }}</div>
                 <div class="user-info">
                   <span class="user-name">{{ s.name }}</span>
-                  <span class="user-email">ST-{{ s.id }}</span>
+                  <span class="user-email">{{ s.email || 'No Email' }} | ST-{{ s.id }}</span>
                 </div>
               </div>
             </td>
             <td>
-              <span class="dept-badge">{{ s.section_name || 'Unassigned' }}</span>
+              <div class="user-info">
+                <span class="dept-badge">{{ getSectionName(s.section_id) }}</span>
+                <span class="user-email" style="font-size: 0.75rem; margin-top: 2px;">{{ getSectionInfo(s.section_id) }}</span>
+              </div>
             </td>
             <td>
-              <span class="status-pill active">Enrolled</span>
+              <span class="status-pill active">{{ s.source === 'admission' ? 'Admission' : 'Local' }}</span>
             </td>
             <td class="text-right">
               <div class="action-group">
